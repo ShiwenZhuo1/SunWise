@@ -27,7 +27,7 @@
             </label>
           </div>
         </transition>
-        <button class="primary" type="button">Get advice</button>
+        <button class="primary" type="button" @click="getAdvice">Get advice</button>
       </div>
 
       <div class="sunscreen-card">
@@ -56,19 +56,19 @@
           <ul class="clothing-list">
             <li>
               <span class="item-icon">🧢</span>
-              <span class="item-title">Wide-brim hat</span>
+              <span class="item-desc">{{ advice.hat }}</span>
             </li>
             <li>
               <span class="item-icon">👕</span>
-              <span class="item-title">Long-sleeve clothing</span>
+              <span class="item-desc">{{ advice.clothing }}</span>
             </li>
             <li>
               <span class="item-icon">🕶️</span>
-              <span class="item-title">UV-blocking sunglasses</span>
+              <span class="item-desc">{{ advice.sunglasses }}</span>
             </li>
             <li>
               <span class="item-icon">⛱️</span>
-              <span class="item-title">Seek shade</span>
+              <span class="item-desc">{{ advice.umbrella }}</span>
             </li>
           </ul>
           <div class="risk-box">
@@ -88,6 +88,77 @@ import { computed, ref } from 'vue'
 const uvOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 const showSelector = ref(false)
 const selectedUv = ref(6)
+
+const uvAdviceMap = {
+  1: {
+    hat: 'Optional: a cap is enough for short outdoor time.',
+    clothing: 'Light clothing is fine.',
+    sunglasses: 'Recommended in bright conditions.',
+    umbrella: 'Usually not necessary.',
+  },
+  2: {
+    hat: 'A small hat is recommended if staying outside.',
+    clothing: 'Normal clothing is fine.',
+    sunglasses: 'Wear UV-blocking sunglasses.',
+    umbrella: 'Optional for extra shade.',
+  },
+  3: {
+    hat: 'Wear a broad-brim hat if outdoors for long periods.',
+    clothing: 'Consider light long sleeves.',
+    sunglasses: 'UV-blocking sunglasses recommended.',
+    umbrella: 'Useful during peak sun hours.',
+  },
+  4: {
+    hat: 'Broad-brim hat recommended.',
+    clothing: 'Long-sleeve clothing is preferred.',
+    sunglasses: 'Wear UV-blocking sunglasses.',
+    umbrella: 'Seek shade or use an umbrella.',
+  },
+  5: {
+    hat: 'Wear a wide-brim hat.',
+    clothing: 'Long-sleeve clothing recommended.',
+    sunglasses: 'Strongly recommended.',
+    umbrella: 'Use shade/umbrella when possible.',
+  },
+  6: {
+    hat: 'Wear a wide-brim hat whenever outside.',
+    clothing: 'Protective long sleeves are recommended.',
+    sunglasses: 'Essential.',
+    umbrella: 'Use an umbrella or stay in shade.',
+  },
+  7: {
+    hat: 'Wide-brim hat is essential.',
+    clothing: 'Long sleeves and tighter-weave fabric recommended.',
+    sunglasses: 'Essential UV-blocking sunglasses.',
+    umbrella: 'Strongly advised.',
+  },
+  8: {
+    hat: 'Always wear a wide-brim hat.',
+    clothing: 'Long-sleeve clothing is necessary.',
+    sunglasses: 'Always wear UV-blocking sunglasses.',
+    umbrella: 'Seek shade and use umbrella when possible.',
+  },
+  9: {
+    hat: 'Strong sun protection needed: wide-brim hat.',
+    clothing: 'Protective long sleeves required.',
+    sunglasses: 'High protection sunglasses required.',
+    umbrella: 'Avoid direct sun; use shade/umbrella.',
+  },
+  10: {
+    hat: 'Wide-brim hat strongly recommended.',
+    clothing: 'Long-sleeve clothing strongly recommended.',
+    sunglasses: 'UV-blocking sunglasses are essential.',
+    umbrella: 'Seek shade immediately or use an umbrella.',
+  },
+  11: {
+    hat: 'Maximum protection: wide-brim hat required.',
+    clothing: 'Full protective clothing recommended.',
+    sunglasses: 'Essential high-protection sunglasses.',
+    umbrella: 'Avoid direct exposure and stay in deep shade.',
+  },
+}
+
+const advice = ref(uvAdviceMap[selectedUv.value])
 
 const gramsByUv = (uv) => {
   const table = {
@@ -117,6 +188,10 @@ const riskByUv = (uv) => {
 const gramsText = computed(() => `≈ ${gramsByUv(selectedUv.value)} g`)
 const levelText = computed(() => `Level ${selectedUv.value}`)
 const riskLabel = computed(() => riskByUv(selectedUv.value))
+
+const getAdvice = () => {
+  advice.value = uvAdviceMap[selectedUv.value] || uvAdviceMap[6]
+}
 </script>
 
 <style scoped>
@@ -132,7 +207,8 @@ const riskLabel = computed(() => riskByUv(selectedUv.value))
 .label {
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  font-size: 0.78rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: #e5e7eb;
 }
 
@@ -441,8 +517,9 @@ const riskLabel = computed(() => riskByUv(selectedUv.value))
   font-size: 32px;
 }
 
-.item-title {
-  font-weight: 600;
+.item-desc {
+  font-size: 1.8rem;
+  opacity: 0.9;
 }
 
 .risk-box {
