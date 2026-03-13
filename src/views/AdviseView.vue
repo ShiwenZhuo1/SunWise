@@ -336,7 +336,7 @@ const getAdvice = () => {
   padding: 10px 14px;
   border-radius: 16px;
   background: #020617;
-  border: 1px solid rgba(148, 163, 184, 0.7);
+  border: none;
   display: flex;
   justify-content: center;
 }

@@ -1,32 +1,42 @@
 <template>
   <section class="page learn">
-    <!-- Top: Why UV matters card -->
-    <div class="why-card">
-      <div class="why-text">
-        <h1>Why UV matters in Australia</h1>
-        <p class="quote">
-          Australia has some of the highest levels of UV radiation in the world. UV can cause sunburn in as little as
-          10 minutes on a clear summer day.
-        </p>
-        <p class="source">
-          Source:
-          <span>ABC Science, Lab Notes</span>
-        </p>
-        <a
-          class="primary-link"
-          href="https://www.abc.net.au/news/science/2025-02-04/sun-summer-uv-sunburn-skin-cancer-australia-ozone-layer/104870806"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn more
-        </a>
+    <!-- Carousel -->
+    <div class="carousel">
+      <div
+        class="slide"
+        v-for="(slide, index) in slides"
+        :key="slide.title"
+        v-show="index === activeIndex"
+        :style="{ backgroundImage: `url(${slide.background})` }"
+      >
+        <div class="slide-overlay">
+          <h1>{{ slide.title }}</h1>
+          <p class="slide-text">
+            {{ slide.text }}
+          </p>
+          <a class="primary-link" :href="slide.link" target="_blank" rel="noopener noreferrer">
+            {{ slide.button }}
+          </a>
+        </div>
       </div>
-      <div class="why-visual">
-        <div class="sunset-hero"></div>
+
+      <div class="carousel-controls">
+        <button class="nav-btn" type="button" @click="prevSlide">‹</button>
+        <div class="dots">
+          <button
+            v-for="(slide, index) in slides"
+            :key="slide.title"
+            type="button"
+            class="dot"
+            :class="{ active: index === activeIndex }"
+            @click="goTo(index)"
+          ></button>
+        </div>
+        <button class="nav-btn" type="button" @click="nextSlide">›</button>
       </div>
     </div>
 
-    <!-- Bottom placeholder cards for future charts -->
+    <!-- Bottom cards for future charts -->
     <div class="bottom-grid">
       <div class="info-card">
         <div class="icon-placeholder">?</div>
@@ -46,48 +56,99 @@
   </section>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref } from 'vue'
+
+const slides = [
+  {
+    title: 'Why UV matters in Australia',
+    text:
+      'Australia experiences some of the world’s highest UV radiation levels. Even on mild or cloudy days, UV can damage skin quickly and cause sunburn within minutes.',
+    button: 'Learn more',
+    link:
+      'https://www.abc.net.au/news/science/2025-02-04/sun-summer-uv-sunburn-skin-cancer-australia-ozone-layer/104870806',
+    background: '/image/AustraliaUV.png',
+  },
+  {
+    title: 'Skin cancer impact',
+    text:
+      'Exposure to ultraviolet (UV) radiation damages skin cells and increases the risk of skin cancer. In Australia, skin cancer is one of the most common cancers but is largely preventable with proper sun protection.',
+    button: 'Read official info',
+    link: 'https://www.cancer.org.au/cancer-information/types-of-cancer/skin-cancer',
+    background: '/image/skincancer.png',
+  },
+  {
+    title: 'Daily sun protection tips',
+    text:
+      'Protect your skin by using sunscreen, wearing protective clothing, seeking shade and sunglasses. These simple habits can significantly reduce the risk of UV damage and skin cancer.',
+    button: 'View official guide',
+    link: 'https://www.skincancer.org/skin-cancer-prevention/sun-protection/',
+    background: '/image/Dailyprotection.png',
+  },
+]
+
+const activeIndex = ref(0)
+
+const prevSlide = () => {
+  activeIndex.value = (activeIndex.value - 1 + slides.length) % slides.length
+}
+
+const nextSlide = () => {
+  activeIndex.value = (activeIndex.value + 1) % slides.length
+}
+
+const goTo = (index) => {
+  activeIndex.value = index
+}
+</script>
 
 <style scoped>
 .page {
   min-height: calc(100vh - 80px);
-  padding: 32px 6vw 40px;
+  padding: 0 0 40px;
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
 
-.why-card {
+.carousel {
+  position: relative;
   border-radius: 32px;
-  padding: 32px 32px 36px;
-  background: linear-gradient(135deg, #0b0620, #3b0764);
+  overflow: hidden;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-  gap: 32px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.slide {
+  height: 550px;
+  background-size: 100% 100%;
+  background-position: center;
+  display: flex;
+  align-items: stretch;
+}
+
+.slide-overlay {
+  flex: 1;
+  padding: 32px 36px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), transparent);
   color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 520px;
 }
 
-.why-text h1 {
+.slide-overlay h1 {
   margin: 0 0 16px;
-  font-size: clamp(2.1rem, 3vw, 2.8rem);
+  font-size: clamp(2rem, 3vw, 2.6rem);
 }
 
-.quote {
-  margin: 0 0 18px;
-  max-width: 440px;
+.slide-text {
+  margin: 0 0 22px;
   line-height: 1.6;
-  opacity: 0.94;
-}
-
-.source {
-  margin: 0 0 26px;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.source span {
-  font-weight: 600;
+  opacity: 0.95;
 }
 
 .primary-link {
@@ -108,43 +169,64 @@
   transform: translateY(-1px);
 }
 
-.why-visual {
+.carousel-controls {
+  position: absolute;
+  inset: auto 0 12px 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 16px;
 }
 
-.sunset-hero {
-  width: min(360px, 80%);
-  aspect-ratio: 4 / 3;
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
   border-radius: 999px;
-  background: radial-gradient(circle at top, #fde68a 0, #fb923c 40%, #ec4899 80%);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
+  border: none;
+  background: rgba(148, 163, 184, 0.7);
+  cursor: pointer;
 }
 
-.sunset-hero::before,
-.sunset-hero::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-top: 4px solid rgba(15, 23, 42, 0.8);
+.dot.active {
+  width: 18px;
+  background: #f97316;
 }
 
-.sunset-hero::before {
-  top: 45%;
-}
+@media (max-width: 768px) {
+  .page {
+    padding-inline: 16px;
+  }
 
-.sunset-hero::after {
-  top: 60%;
+  .slide-overlay {
+    padding: 24px 20px;
+    max-width: 100%;
+  }
 }
 
 .bottom-grid {
+  margin-top: 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
-  gap: 24px;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .info-card {
@@ -179,19 +261,5 @@
   margin: 0;
   font-size: 0.9rem;
   opacity: 0.9;
-}
-
-@media (max-width: 960px) {
-  .why-card {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .bottom-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sunset-hero {
-    width: min(320px, 90%);
-  }
 }
 </style>
