@@ -1,82 +1,106 @@
 <template>
   <section class="page home">
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="hero-label">UV protection guidance</p>
+    <video class="page-video" autoplay muted loop playsinline>
+      <source src="/home.mp4" type="video/mp4" />
+    </video>
+    <div class="page-overlay"></div>
+
+    <section class="hero content-layer">
+      <div class="hero-intro">
+        <p class="hero-label">Local UV protection guidance</p>
         <h1>Stay Sun-Safe Today</h1>
-        <p class="hero-text">Real-time UV alerts and protection guidance</p>
+        <p class="hero-text">
+          Share your location to instantly check the UV index and see what protection you need
+          before heading outside.
+        </p>
       </div>
 
-      <div class="hero-art" aria-hidden="true">
-        <img :src="heroImage" alt="" class="hero-image" />
-      </div>
+      <article class="uv-hero-card" :class="{ empty: !hasLocationData }">
+        <div class="uv-hero-main">
+          <div class="gauge-zone">
+            <p class="card-kicker">Current UV index</p>
+            <div class="gauge-shell hero-gauge-shell">
+              <div class="gauge-ring hero-gauge" :class="{ muted: !hasLocationData }">
+                <div class="gauge-center hero-gauge-center">
+                  <span class="gauge-label">UV Level</span>
+                  <span class="gauge-value">{{ hasLocationData ? displayData.uvIndex : '-' }}</span>
+                </div>
+              </div>
+            </div>
+            <p class="gauge-caption" v-if="hasLocationData">{{ displayData.locationName }}</p>
+            <p class="gauge-caption" v-else>Waiting for location access</p>
+          </div>
 
-      <div class="hero-actions">
-        <button class="cta-button" type="button" :disabled="isLoading" @click="detectLocation">
-          {{ isLoading ? 'Locating...' : 'Use my location' }}
-        </button>
-        <p class="status-text">{{ locationStatus }}</p>
-      </div>
-    </section>
+          <div class="uv-hero-summary" :class="{ centered: !hasLocationData }">
+            <p class="summary-kicker">{{ hasLocationData ? 'Current result' : 'Get started' }}</p>
+            <p class="summary-title">
+              {{ hasLocationData ? displayData.riskLabel + ' UV in your area' : 'Enable location to view your local UV level' }}
+            </p>
+            <p class="summary-copy" v-if="hasLocationData">{{ displayData.riskMessage }}</p>
+            <p class="summary-copy" v-else>
+              Share your location once and SunWise will show your UV level, risk summary, and protection advice here.
+            </p>
 
-    <section class="dashboard">
-      <article class="uv-card">
-        <p class="panel-kicker">UV index</p>
-        <div class="gauge-shell">
-          <div class="gauge-ring">
-            <div class="gauge-center">
-              <span class="gauge-label">UV Level</span>
-              <span class="gauge-value">{{ homeData.uvIndex }}</span>
+            <div class="summary-grid" v-if="hasLocationData">
+              <div class="summary-item">
+                <span class="summary-label">Peak window</span>
+                <span class="summary-value">{{ displayData.peakWindow }}</span>
+              </div>
+              <div class="summary-item accent">
+                <span class="summary-label">Protection</span>
+                <span class="summary-value">{{ displayData.protectionAdvice }}</span>
+              </div>
+            </div>
+
+            <div class="summary-actions">
+              <button class="cta-button" type="button" :disabled="isLoading" @click="detectLocation">
+                {{ isLoading ? 'Locating...' : hasLocationData ? 'Update location' : 'Use my location' }}
+              </button>
+              <p class="status-text">{{ locationStatus }}</p>
             </div>
           </div>
         </div>
-        <div class="location-block">
-          <p class="location-label">Current location</p>
-          <p class="location-value">{{ homeData.locationName }}</p>
-          <p class="location-coords">{{ coordsText }}</p>
-        </div>
-        <button class="secondary-button" type="button" :disabled="isLoading" @click="detectLocation">
-          {{ isLoading ? 'Updating...' : 'Change location' }}
-        </button>
-      </article>
-
-      <article class="risk-panel">
-        <p class="risk-kicker">Today's risk</p>
-        <div class="risk-header">
-          <div class="sun-badge" aria-hidden="true">
-            <span class="sun-core"></span>
-          </div>
-          <div>
-            <p class="risk-title">{{ homeData.riskLabel }}</p>
-            <p class="risk-subtitle">UV level at {{ homeData.uvIndex }}</p>
-          </div>
-        </div>
-        <p class="risk-message">{{ homeData.riskMessage }}</p>
-        <div class="meta-grid">
-          <div class="meta-card">
-            <span class="meta-label">Peak window</span>
-            <span class="meta-value">{{ homeData.peakWindow }}</span>
-          </div>
-          <div class="meta-card">
-            <span class="meta-label">Protection</span>
-            <span class="meta-value">{{ homeData.protectionAdvice }}</span>
-          </div>
-        </div>
-        <button class="ghost-button" type="button" @click="scrollToAdvice">
-          What should I wear?
-        </button>
-        <p class="more-link">See more advice below</p>
       </article>
     </section>
 
-    <section id="home-advice" class="advice-strip">
-      <article class="advice-card">
-        <p class="advice-title">Quick sun-safe checklist</p>
-        <ul class="advice-list">
-          <li>Apply broad-spectrum sunscreen before outdoor activity.</li>
-          <li>Wear a hat, sunglasses, and breathable long sleeves when risk is high.</li>
-          <li>Plan direct sun exposure outside the peak UV window when possible.</li>
-        </ul>
+    <section class="details-grid content-layer">
+      <article class="advice-panel">
+        <p class="card-kicker centered">Protection guide</p>
+        <template v-if="hasLocationData">
+          <div class="advice-highlight">
+            <p class="advice-title">What you should do now</p>
+            <p class="advice-text">{{ displayData.protectionAdvice }}</p>
+          </div>
+          <div class="meta-grid">
+            <div class="meta-card">
+              <span class="meta-label">Risk level</span>
+              <span class="meta-value">{{ displayData.riskLabel }}</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-label">Peak window</span>
+              <span class="meta-value">{{ displayData.peakWindow }}</span>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <div class="advice-highlight empty-block">
+            <p class="advice-title">Protection advice will appear here</p>
+            <p class="advice-text muted-text">
+              Share your location first to get personalised UV guidance.
+            </p>
+          </div>
+        </template>
+      </article>
+
+      <article class="advice-panel checklist-panel">
+        <p class="card-kicker centered">Quick checklist</p>
+        <div class="checklist-block">
+          <ul class="advice-list">
+            <li>Apply broad-spectrum sunscreen before outdoor activity.</li>
+            <li>Wear a hat, sunglasses, and breathable long sleeves when risk is high.</li>
+            <li>Plan direct sun exposure outside the peak UV window when possible.</li>
+          </ul>
+        </div>
       </article>
     </section>
   </section>
@@ -84,7 +108,6 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import heroImage from '../assets/1.png'
 
 const FALLBACK_COORDS = { latitude: -37.8136, longitude: 144.9631 }
 const FALLBACK_LOCATION = 'Melbourne, Australia'
@@ -92,9 +115,9 @@ const API_BASE_URL = '/api/home-data'
 const USE_BACKEND_API = false
 
 const isLoading = ref(false)
-const coords = ref({ ...FALLBACK_COORDS })
-const locationStatus = ref('Location ready. Tap to use your current position.')
-const homeData = ref(buildMockHomeData(FALLBACK_COORDS, FALLBACK_LOCATION))
+const coords = ref(null)
+const locationStatus = ref('Use your location to get your local UV result.')
+const homeData = ref(null)
 
 function getRiskLabel(uvIndex) {
   if (uvIndex <= 2) return 'Low'
@@ -168,8 +191,16 @@ async function loadHomeData(currentCoords, fallbackLocationName = FALLBACK_LOCAT
   return buildMockHomeData(currentCoords, fallbackLocationName)
 }
 
-const coordsText = computed(
-  () => `${coords.value.latitude.toFixed(2)}, ${coords.value.longitude.toFixed(2)}`
+const hasLocationData = computed(() => homeData.value !== null)
+const displayData = computed(() =>
+  homeData.value ?? {
+    locationName: '',
+    uvIndex: '-',
+    riskLabel: '',
+    riskMessage: '',
+    peakWindow: '',
+    protectionAdvice: '',
+  }
 )
 
 async function detectLocation() {
@@ -209,222 +240,156 @@ async function detectLocation() {
     async () => {
       coords.value = { ...FALLBACK_COORDS }
       homeData.value = await loadHomeData(FALLBACK_COORDS, FALLBACK_LOCATION)
-      locationStatus.value = 'Location access was unavailable. Showing Melbourne as a fallback.'
+      locationStatus.value = 'Location access was unavailable. Showing Melbourne as a fallback after your request.'
       isLoading.value = false
     },
     { enableHighAccuracy: true, timeout: 10000 }
   )
 }
-
-function scrollToAdvice() {
-  document.getElementById('home-advice')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
 </script>
 
 <style scoped>
 .page {
-  min-height: calc(100vh - 80px);
-  padding: 32px 6vw 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.hero {
-  border-radius: 32px;
-  padding: 28px 28px 34px;
-  background: linear-gradient(180deg, #25004d 0%, #1b003a 100%);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  gap: 8px;
-  overflow: hidden;
   position: relative;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(251, 113, 133, 0.08), transparent 60%);
-  pointer-events: none;
-}
-
-.hero-copy {
-  text-align: center;
-  max-width: 620px;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-label {
-  margin: 0 0 10px;
-  color: #f8c7d8;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 0.76rem;
-}
-
-.hero-copy h1 {
-  margin: 0;
-  font-size: clamp(2.3rem, 4.6vw, 3.5rem);
-  line-height: 1.05;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.hero-text {
-  margin: 10px 0 0;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 1rem;
-}
-
-.hero-art {
-  width: min(1120px, 100%);
-  display: flex;
-  justify-content: center;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-image {
-  display: block;
-  width: min(980px, 100%);
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 26px 38px rgba(251, 113, 133, 0.16));
-}
-
-.hero-actions {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.cta-button,
-.secondary-button,
-.ghost-button {
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-}
-
-.cta-button,
-.secondary-button {
-  background: linear-gradient(135deg, #f97316, #fb7185);
-  color: #1f2937;
-  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35);
-}
-
-.cta-button {
-  padding: 14px 28px;
-  text-transform: uppercase;
-  font-size: 0.82rem;
-}
-
-.secondary-button {
-  padding: 12px 22px;
-  text-transform: uppercase;
-  font-size: 0.74rem;
-  align-self: flex-start;
-}
-
-.ghost-button {
-  padding: 12px 18px;
-  background: #2e1065;
-  color: #ffffff;
-  width: fit-content;
-}
-
-.cta-button:hover,
-.secondary-button:hover,
-.ghost-button:hover {
-  transform: translateY(-1px);
-}
-
-.cta-button:disabled,
-.secondary-button:disabled,
-.ghost-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.status-text {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.92rem;
-  text-align: center;
-}
-
-.dashboard {
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 32px;
-  padding: 28px;
-  color: #1f2937;
-  display: grid;
-  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
-  gap: 28px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.32);
-}
-
-.uv-card {
-  background: #22004a;
-  color: #ffffff;
-  border-radius: 30px;
-  padding: 28px 28px 26px;
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.2);
+  min-height: calc(100vh - 64px);
+  margin-top: -16px;
+  padding: 0 6vw 40px;
   display: flex;
   flex-direction: column;
   gap: 22px;
+  overflow: hidden;
 }
 
-.panel-kicker,
-.risk-kicker,
-.advice-title {
-  margin: 0;
+.page-video,
+.page-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.page-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.page-overlay {
+  background:
+    linear-gradient(180deg, rgba(255, 245, 236, 0.28), rgba(25, 20, 39, 0.38)),
+    linear-gradient(135deg, rgba(251, 146, 60, 0.16), rgba(236, 72, 153, 0.12));
+}
+
+.content-layer {
+  position: relative;
+  z-index: 1;
+}
+
+.hero {
+  display: grid;
+  gap: 16px;
+  padding-top: 20px;
+}
+
+.hero-intro,
+.uv-hero-card,
+.advice-panel {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.2);
+}
+
+.hero-intro {
+  padding: 26px 30px;
+  background: linear-gradient(135deg, rgba(255, 250, 244, 0.84), rgba(255, 255, 255, 0.72));
+  text-align: center;
+}
+
+.hero-label,
+.card-kicker,
+.summary-kicker {
+  margin: 0 0 10px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 800;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
-.panel-kicker {
-  font-size: clamp(2rem, 5vw, 3rem);
+.hero-label {
+  color: #c2410c;
 }
 
-.gauge-shell {
-  display: flex;
+.hero-intro h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  line-height: 1.02;
+  color: #1f1630;
+}
+
+.hero-text {
+  margin: 14px auto 0;
+  max-width: 720px;
+  color: #4b5563;
+  font-size: 1.02rem;
+}
+
+.uv-hero-card {
+  padding: 24px 26px 26px;
+  background: linear-gradient(135deg, rgba(255, 250, 243, 0.94), rgba(255, 255, 255, 0.88));
+}
+
+.uv-hero-card.empty {
+  background: linear-gradient(135deg, rgba(255, 250, 243, 0.9), rgba(255, 255, 255, 0.84));
+}
+
+.uv-hero-main {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.gauge-zone {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.card-kicker {
+  color: #6b7280;
+  text-align: center;
+}
+
+.gauge-caption {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  color: #5b6473;
+  min-height: 1.5em;
+}
+
+.hero-gauge-shell {
   justify-content: center;
 }
 
 .gauge-ring {
-  width: 240px;
-  height: 240px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
-  background:
-    conic-gradient(
-      #b10000 0deg 90deg,
-      #a5d66a 90deg 180deg,
-      #f2c94c 180deg 270deg,
-      #f97316 270deg 360deg
-    );
+  background: conic-gradient(#b10000 0deg 90deg, #a5d66a 90deg 180deg, #f2c94c 180deg 270deg, #f97316 270deg 360deg);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.gauge-ring.muted {
+  filter: grayscale(0.5) saturate(0.7) brightness(1.02);
+  opacity: 0.46;
+  transform: scale(0.92);
+}
+
 .gauge-center {
-  width: 126px;
-  height: 126px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   background: #22004a;
   display: flex;
@@ -434,202 +399,190 @@ function scrollToAdvice() {
 }
 
 .gauge-label {
-  font-size: 0.84rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  color: #ffffff;
 }
 
 .gauge-value {
-  font-size: 4rem;
+  font-size: 4.8rem;
   line-height: 1;
   color: #e11d48;
   font-weight: 900;
 }
 
-.location-block {
+.uv-hero-summary {
   display: grid;
-  gap: 4px;
+  gap: 10px;
 }
 
-.location-label {
-  margin: 0;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: #c4b5fd;
+.uv-hero-summary.centered {
+  justify-items: center;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
-.location-value,
-.location-coords,
-.risk-title,
-.risk-subtitle,
-.risk-message,
-.more-link {
-  margin: 0;
-}
-
-.location-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.location-coords {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.risk-panel {
-  padding: 24px 26px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.96));
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 30px;
-  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.1);
-}
-
-.risk-kicker {
+.summary-kicker {
   color: #6b7280;
-  font-size: 0.82rem;
-  letter-spacing: 0.18em;
 }
 
-.risk-header {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.sun-badge {
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background: #ef233c;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.sun-badge::before {
-  content: '';
-  position: absolute;
-  inset: 10px;
-  border-radius: 50%;
-  border: 8px solid #facc15;
-}
-
-.sun-badge::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  background:
-    conic-gradient(
-      transparent 0deg 15deg,
-      #facc15 15deg 30deg,
-      transparent 30deg 45deg,
-      #facc15 45deg 60deg,
-      transparent 60deg 75deg,
-      #facc15 75deg 90deg,
-      transparent 90deg 105deg,
-      #facc15 105deg 120deg,
-      transparent 120deg 135deg,
-      #facc15 135deg 150deg,
-      transparent 150deg 165deg,
-      #facc15 165deg 180deg,
-      transparent 180deg 195deg,
-      #facc15 195deg 210deg,
-      transparent 210deg 225deg,
-      #facc15 225deg 240deg,
-      transparent 240deg 255deg,
-      #facc15 255deg 270deg,
-      transparent 270deg 285deg,
-      #facc15 285deg 300deg,
-      transparent 300deg 315deg,
-      #facc15 315deg 330deg,
-      transparent 330deg 345deg,
-      #facc15 345deg 360deg
-    );
-  -webkit-mask: radial-gradient(circle, transparent 50px, #000 51px);
-  mask: radial-gradient(circle, transparent 50px, #000 51px);
-}
-
-.sun-core {
-  position: absolute;
-  inset: 30px;
-  border-radius: 50%;
-  background: #facc15;
-}
-
-.risk-title {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  font-weight: 900;
-  color: #c2410c;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
-.risk-subtitle {
-  margin-top: 6px;
-  font-size: clamp(1.1rem, 3vw, 2rem);
+.summary-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
   font-weight: 800;
-  color: #c2410c;
-  text-transform: uppercase;
+  color: #7c2d12;
+  line-height: 1.08;
 }
 
-.risk-message {
-  font-size: 1rem;
+.summary-copy {
+  margin: 0;
   color: #4b5563;
+  line-height: 1.55;
+  font-size: 1rem;
+  max-width: 760px;
 }
 
-.meta-grid {
+.summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
+  margin-top: 6px;
+  width: 100%;
 }
 
-.meta-card {
-  border-radius: 18px;
+.summary-item,
+.meta-card,
+.advice-highlight,
+.checklist-block {
+  border-radius: 20px;
   padding: 16px 18px;
-  background: #ffffff;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
+.summary-item {
+  display: grid;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.summary-item.accent {
+  background: rgba(249, 115, 22, 0.14);
+}
+
+.summary-label,
 .meta-label {
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
   color: #6b7280;
-  font-size: 0.76rem;
 }
 
+.summary-value,
 .meta-value {
   font-weight: 800;
   color: #1f2937;
 }
 
-.more-link {
-  color: #6b7280;
-  font-size: 0.92rem;
-  letter-spacing: 0.02em;
-}
-
-.advice-strip {
+.summary-actions {
+  margin-top: 8px;
   display: grid;
+  gap: 8px;
+  justify-items: center;
 }
 
-.advice-card {
-  border-radius: 28px;
+.cta-button {
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #f97316, #fb7185);
+  color: #1f2937;
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.22);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  padding: 14px 28px;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+
+.cta-button:hover {
+  transform: translateY(-1px);
+}
+
+.cta-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.status-text {
+  margin: 0;
+  color: #5b6473;
+  font-size: 0.92rem;
+  text-align: center;
+  max-width: 420px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.advice-panel {
   padding: 24px 26px;
-  background: rgba(2, 6, 23, 0.86);
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.75);
+  background: linear-gradient(135deg, rgba(255, 250, 243, 0.92), rgba(255, 255, 255, 0.84));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.centered {
+  text-align: center;
+}
+
+.advice-highlight {
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.empty-block {
+  text-align: center;
 }
 
 .advice-title {
-  font-size: 1.1rem;
-  margin-bottom: 14px;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #7c2d12;
+}
+
+.advice-text,
+.muted-text {
+  margin: 8px 0 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.meta-card {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checklist-panel {
+  justify-content: flex-start;
+}
+
+.checklist-block {
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .advice-list {
@@ -637,20 +590,13 @@ function scrollToAdvice() {
   padding-left: 20px;
   display: grid;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.86);
+  color: #374151;
 }
 
 @media (max-width: 1024px) {
-  .dashboard {
+  .uv-hero-main,
+  .details-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .uv-card {
-    max-width: 460px;
-  }
-
-  .hero-image {
-    width: min(860px, 100%);
   }
 }
 
@@ -659,39 +605,38 @@ function scrollToAdvice() {
     padding-inline: 16px;
   }
 
-  .hero {
-    padding: 24px 18px 28px;
+  .hero-intro,
+  .uv-hero-card,
+  .advice-panel {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
-  .hero-copy h1 {
-    font-size: clamp(1.9rem, 8vw, 2.6rem);
-  }
-
-  .dashboard {
-    padding: 18px;
-  }
-
-  .uv-card {
-    padding: 24px 18px 22px;
+  .hero-intro h1 {
+    font-size: clamp(2rem, 8vw, 2.8rem);
   }
 
   .gauge-ring {
-    width: 210px;
-    height: 210px;
+    width: 230px;
+    height: 230px;
   }
 
   .gauge-center {
-    width: 112px;
-    height: 112px;
+    width: 126px;
+    height: 126px;
   }
 
-  .risk-header {
-    display: grid;
-    align-items: start;
+  .gauge-value {
+    font-size: 4rem;
   }
 
+  .summary-grid,
   .meta-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cta-button {
+    width: 100%;
   }
 }
 </style>
