@@ -36,28 +36,51 @@
       </div>
     </div>
 
-    <!-- Bottom cards for future charts -->
+    <!-- Bottom cards for charts -->
     <div class="bottom-grid">
-      <div class="info-card">
+      <button class="info-card info-card-btn" type="button" @click="showChart('skin')">
         <div class="icon-placeholder">?</div>
         <div class="info-text">
           <h2>Skin cancer impact</h2>
-          <p>Learn how UV levels relate to skin cancer risk in Australia.</p>
+          <p>Age-specific incidence rate (per 100,000) by sex — Males, Females, Persons (all ages). Filter by year range.</p>
         </div>
-      </div>
-      <div class="info-card">
+      </button>
+      <button class="info-card info-card-btn" type="button" @click="showChart('heat')">
         <div class="icon-placeholder">☀️</div>
         <div class="info-text">
           <h2>Heat &amp; UV exposure trend</h2>
-          <p>Visualise daily UV and heat trends for your location (coming soon).</p>
+          <p>Number of days per year above the 1% heat threshold. Filter by year range to view trends.</p>
         </div>
-      </div>
+      </button>
     </div>
+
+    <!-- Charts only mount and show after clicking corresponding button -->
+    <SkinCancerChart v-if="activeChart === 'skin'" ref="skinChartRef" />
+
+    <HeatChart v-if="activeChart === 'heat'" ref="heatChartRef" />
   </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
+import HeatChart from '../components/HeatChart.vue'
+import SkinCancerChart from '../components/SkinCancerChart.vue'
+
+const activeChart = ref(null)
+const skinChartRef = ref(null)
+const heatChartRef = ref(null)
+
+function showChart(which) {
+  if (activeChart.value === which) {
+    activeChart.value = null
+    return
+  }
+  activeChart.value = which
+  nextTick(() => {
+    const el = which === 'skin' ? skinChartRef.value?.$el : heatChartRef.value?.$el
+    el?.scrollIntoView({ behavior: 'smooth' })
+  })
+}
 
 const slides = [
   {
@@ -239,6 +262,17 @@ const goTo = (index) => {
   align-items: center;
   gap: 16px;
   color: #f9fafb;
+}
+
+.info-card-btn {
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.info-card-btn:hover {
+  border-color: #f97316;
 }
 
 .icon-placeholder {
