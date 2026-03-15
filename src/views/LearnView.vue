@@ -36,8 +36,28 @@
             </div>
           </div>
 
-    <!-- Bottom cards for charts -->
-    <div class="bottom-grid">
+          <div class="carousel-controls">
+            <div class="dots">
+              <button
+                v-for="(_, index) in slides"
+                :key="index"
+                type="button"
+                class="dot"
+                :class="{ active: index === activeIndex }"
+                :aria-label="`Go to slide ${index + 1}`"
+                @click.stop="goTo(index)"
+              ></button>
+            </div>
+          </div>
+        </div>
+
+        <button class="nav-btn nav-btn-next" type="button" aria-label="Next slide" @click="nextSlide">
+          &#8250;
+        </button>
+      </div>
+
+      <!-- Bottom cards for charts -->
+      <div class="bottom-grid">
       <button class="info-card info-card-btn" type="button" @click="showChart('skin')">
         <div class="icon-placeholder">?</div>
         <div class="info-text">
@@ -54,10 +74,10 @@
       </button>
     </div>
 
-    <!-- Charts only mount and show after clicking corresponding button -->
-    <SkinCancerChart v-if="activeChart === 'skin'" ref="skinChartRef" />
-
-    <HeatChart v-if="activeChart === 'heat'" ref="heatChartRef" />
+      <!-- Charts only mount and show after clicking corresponding button -->
+      <SkinCancerChart v-if="activeChart === 'skin'" ref="skinChartRef" />
+      <HeatChart v-if="activeChart === 'heat'" ref="heatChartRef" />
+    </div>
   </section>
 </template>
 
