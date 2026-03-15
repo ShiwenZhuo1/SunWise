@@ -241,7 +241,7 @@ const goTo = (index) => {
   margin: 0 0 16px;
   font-size: clamp(1.5rem, 2.2vw, 2rem);
   line-height: 1.2;
-  color: #1e3a8a;
+  color: #7c2d12;
   font-weight: 700;
 }
 

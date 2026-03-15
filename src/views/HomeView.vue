@@ -144,11 +144,11 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { API_BASE as LOCATION_API_BASE, WEATHER_API_BASE } from '../config'
+
 const SHARED_UV_STORAGE_KEY = 'sunwise-current-uv'
 const FALLBACK_COORDS = { latitude: -37.8136, longitude: 144.9631 }
 const FALLBACK_LOCATION = 'Melbourne, Australia'
-const LOCATION_API_BASE = 'http://127.0.0.1:8000'
-const WEATHER_API_BASE = 'http://127.0.0.1:8001'
 const MAJOR_AUSTRALIAN_CITIES = [
   { name: 'Sydney', latitude: -33.8688, longitude: 151.2093 },
   { name: 'Melbourne', latitude: -37.8136, longitude: 144.9631 },
@@ -261,6 +261,30 @@ async function fetchUvSummary(uvIndex) {
   return response.json()
 }
 
+// Suburb/city/country field names used by common geocoding APIs (Nominatim, etc.)
+const ADDRESS_KEYS = [
+  'suburb',
+  'neighbourhood',
+  'locality',
+  'district',
+  'city_district',
+  'town',
+  'village',
+  'municipality',
+  'city',
+  'county',
+  'state',
+  'country',
+]
+
+function collectAddressParts(obj) {
+  if (!obj || typeof obj !== 'object') return []
+  return ADDRESS_KEYS.map((k) => obj[k])
+    .filter((v) => typeof v === 'string' && v.trim())
+    .map((v) => v.trim())
+    .filter((v) => v.toLowerCase() !== 'city')
+}
+
 function parseLocationName(payload) {
   if (!payload || typeof payload !== 'object') {
     return ''
@@ -279,21 +303,9 @@ function parseLocationName(payload) {
   ].filter((item) => item && typeof item === 'object')
 
   for (const item of candidates) {
-    const parts = [
-      item.suburb,
-      item.neighbourhood,
-      item.city,
-      item.town,
-      item.village,
-      item.municipality,
-      item.county,
-      item.state,
-      item.country,
-    ]
-      .filter((part) => typeof part === 'string' && part.trim())
-      .map((part) => part.trim())
-      .filter((part) => part.toLowerCase() !== 'city')
-
+    // Prefer nested address (e.g. Nominatim result.address.suburb)
+    const source = item.address && typeof item.address === 'object' ? item.address : item
+    const parts = collectAddressParts(source)
     if (parts.length > 0) {
       return [...new Set(parts)].join(', ')
     }
@@ -301,7 +313,7 @@ function parseLocationName(payload) {
     const directName =
       item.locationName ||
       item.formatted_address ||
-      item.address ||
+      (typeof item.address === 'string' ? item.address : null) ||
       item.name ||
       item.label ||
       item.display_name

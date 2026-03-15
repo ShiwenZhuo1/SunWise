@@ -48,8 +48,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-
-const API_BASE = 'http://127.0.0.1:8000'
+import { API_BASE } from '../config'
 
 const BUTTON_SIZE = 52
 const GAP = 24
@@ -59,7 +58,7 @@ const question = ref('')
 const loading = ref(false)
 const messages = ref([])
 
-// 圆形按钮位置（用于拖拽）
+// FAB position (updated on drag)
 const posX = ref(0)
 const posY = ref(0)
 const isDragging = ref(false)

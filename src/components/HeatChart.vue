@@ -33,6 +33,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { Line } from 'vue-chartjs'
+import { API_BASE } from '../config'
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -59,8 +60,6 @@ const chartAreaBackgroundPlugin = {
   },
 }
 ChartJS.register(chartAreaBackgroundPlugin)
-
-const API_BASE = 'http://127.0.0.1:8000'
 
 const rawData = ref([])
 const loading = ref(true)
