@@ -160,3 +160,13 @@ npm run dev -- --port 5174
 
 - Run `npm install` and try again.
 - Use a supported Node version (18+). Check with `node -v`.
+
+## Deploy to Vercel (and connect to production backend)
+
+1. Push the repo to GitHub and import it in [Vercel](https://vercel.com). Build and output are auto-detected (Vite → `dist`).
+2. **Set environment variable** so the frontend calls your deployed backend:
+   - In Vercel: **Project → Settings → Environment Variables**
+   - Add: **Name** `VITE_API_BASE`, **Value** `https://sunsmart-backend-production.up.railway.app` (no trailing slash).
+   - Optional: if you use a separate weather API, add `VITE_WEATHER_API_BASE`.
+3. **Redeploy** after saving the variable (Deployments → … → Redeploy). Vite bakes `VITE_*` at build time, so a new build is required.
+4. **CORS:** The backend must allow the frontend origin. For the Vercel app that is `https://sun-wise-ruby.vercel.app`. If the backend does not send `Access-Control-Allow-Origin` for that origin, the browser will block requests. See **[docs/BACKEND_CORS.md](docs/BACKEND_CORS.md)** for a FastAPI CORS example (add `CORSMiddleware` and allow `https://sun-wise-ruby.vercel.app`). After changing the backend, redeploy it (e.g. on Railway).

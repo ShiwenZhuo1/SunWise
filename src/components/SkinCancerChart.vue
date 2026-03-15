@@ -28,6 +28,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { Line } from 'vue-chartjs'
+import { API_BASE } from '../config'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -48,8 +49,6 @@ ChartJS.register(
   Tooltip,
   Legend
 )
-
-const API_BASE = 'http://127.0.0.1:8000'
 
 const rawData = ref([])
 const loading = ref(true)
