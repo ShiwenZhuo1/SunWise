@@ -18,7 +18,10 @@
       </div>
     </div>
     <div v-if="loading" class="chart-loading">Loading...</div>
-    <div v-else-if="error" class="chart-error">{{ error }}</div>
+    <div v-else-if="error" class="chart-error">
+      <span>{{ error }}</span>
+      <p class="chart-error-hint">If deployed: set VITE_API_BASE in Vercel and allow CORS from your frontend origin.</p>
+    </div>
     <div v-else class="chart-wrap">
       <Line :data="chartData" :options="chartOptions" />
     </div>
@@ -49,6 +52,20 @@ ChartJS.register(
   Tooltip,
   Legend
 )
+
+const chartAreaBackgroundPlugin = {
+  id: 'chartAreaBackground',
+  beforeDraw(chart) {
+    const ctx = chart.ctx
+    const area = chart.chartArea
+    if (!area) return
+    ctx.save()
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.98)'
+    ctx.fillRect(area.left, area.top, area.right - area.left, area.bottom - area.top)
+    ctx.restore()
+  },
+}
+ChartJS.register(chartAreaBackgroundPlugin)
 
 const rawData = ref([])
 const loading = ref(true)
@@ -141,7 +158,7 @@ const chartOptions = {
       display: true,
       position: 'top',
       labels: {
-        color: '#e5e7eb',
+        color: '#475569',
         usePointStyle: true,
         padding: 16,
       },
@@ -152,19 +169,19 @@ const chartOptions = {
   },
   scales: {
     x: {
-      title: { display: true, text: 'Year', color: '#e5e7eb' },
-      grid: { color: 'rgba(148, 163, 184, 0.25)' },
-      ticks: { color: '#e5e7eb', maxTicksLimit: 14 },
+      title: { display: true, text: 'Year', color: '#475569' },
+      grid: { color: 'rgba(148, 163, 184, 0.2)' },
+      ticks: { color: '#475569', maxTicksLimit: 14 },
     },
     y: {
       title: {
         display: true,
         text: 'Age-specific rate (per 100,000)',
-        color: '#e5e7eb',
+        color: '#475569',
       },
       beginAtZero: true,
-      grid: { color: 'rgba(148, 163, 184, 0.25)' },
-      ticks: { color: '#e5e7eb' },
+      grid: { color: 'rgba(148, 163, 184, 0.2)' },
+      ticks: { color: '#475569' },
     },
   },
 }
@@ -211,10 +228,10 @@ onMounted(() => {
   margin-right: auto;
   padding: 24px 28px;
   border-radius: 24px;
-  background: #020617;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
-  color: #f9fafb;
+  background: linear-gradient(135deg, rgba(255, 251, 247, 0.98), rgba(248, 250, 252, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+  color: #111827;
 }
 
 .chart-header {
@@ -229,7 +246,7 @@ onMounted(() => {
 .chart-header h2 {
   margin: 0;
   font-size: 1.1rem;
-  color: #f9fafb;
+  color: #7c2d12;
 }
 
 .year-range {
@@ -243,21 +260,23 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
-  color: #e5e7eb;
+  color: #475569;
 }
 
 .year-range select {
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: #0f172a;
-  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #fff;
+  color: #111827;
   font-size: 0.9rem;
 }
 
 .chart-wrap {
   height: 480px;
   width: 100%;
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
 .chart-loading,
@@ -266,10 +285,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: #64748b;
+  font-size: 0.95rem;
 }
 
 .chart-error {
-  color: #f87171;
+  color: #dc2626;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+.chart-error-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  max-width: 280px;
 }
 </style>
