@@ -138,9 +138,10 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+const SHARED_UV_STORAGE_KEY = 'sunwise-current-uv'
 const FALLBACK_COORDS = { latitude: -37.8136, longitude: 144.9631 }
 const FALLBACK_LOCATION = 'Melbourne, Australia'
 const LOCATION_API_BASE = 'http://127.0.0.1:8000'
@@ -375,6 +376,18 @@ const protectionItems = computed(() =>
       label: item,
       icon: getProtectionIcon(item),
     }))
+)
+
+watch(
+  homeData,
+  (value) => {
+    const uvIndex = Number(value?.uvIndex)
+
+    if (Number.isFinite(uvIndex)) {
+      localStorage.setItem(SHARED_UV_STORAGE_KEY, String(uvIndex))
+    }
+  },
+  { deep: true }
 )
 
 async function detectLocation() {

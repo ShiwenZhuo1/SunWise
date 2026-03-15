@@ -1,5 +1,5 @@
 <script setup>
-import { RouterView, RouterLink } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router'
 import ChatWidget from './components/ChatWidget.vue'
 </script>
 
@@ -7,9 +7,22 @@ import ChatWidget from './components/ChatWidget.vue'
   <div class="layout">
     <header class="top-bar">
       <div class="left">
-        <div class="logo-mark">☀️</div>
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" class="logo-icon">
+            <circle cx="16" cy="16" r="7" />
+            <path d="M16 3.5v4" />
+            <path d="M16 24.5v4" />
+            <path d="M3.5 16h4" />
+            <path d="M24.5 16h4" />
+            <path d="m7.2 7.2 2.8 2.8" />
+            <path d="m22 22 2.8 2.8" />
+            <path d="m7.2 24.8 2.8-2.8" />
+            <path d="m22 10 2.8-2.8" />
+          </svg>
+        </div>
         <div class="logo-text">Sunwise</div>
       </div>
+
       <nav class="nav">
         <RouterLink to="/" class="nav-link">Home</RouterLink>
         <RouterLink to="/learn" class="nav-link">Learn</RouterLink>
@@ -42,8 +55,10 @@ import ChatWidget from './components/ChatWidget.vue'
   align-items: center;
   justify-content: space-between;
   padding: 0 48px;
-  background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(76, 29, 149, 0.96));
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.7);
+  background: linear-gradient(90deg, rgba(34, 24, 18, 0.94), rgba(78, 49, 30, 0.92));
+  border-bottom: 1px solid rgba(255, 247, 237, 0.12);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.22);
+  backdrop-filter: blur(14px);
   z-index: 100;
 }
 
@@ -53,48 +68,92 @@ import ChatWidget from './components/ChatWidget.vue'
 }
 
 .logo-mark {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 20%, #facc15 0, #f97316 40%, #fb7185 90%);
+  background:
+    radial-gradient(circle at 32% 30%, rgba(255, 247, 237, 0.9) 0, rgba(255, 247, 237, 0.18) 18%, transparent 19%),
+    radial-gradient(circle at 35% 35%, #fde68a 0, #fb923c 44%, #f97316 74%, #ea580c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 10px 22px rgba(249, 115, 22, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  margin-right: 10px;
+  margin-right: 12px;
+  flex: 0 0 auto;
+}
+
+.logo-icon {
+  width: 22px;
+  height: 22px;
+  color: rgba(120, 53, 15, 0.88);
+  fill: #fde68a;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .logo-text {
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #f9fafb;
+  color: #fff7ed;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
   margin-right: 40px;
 }
 
 .nav {
   display: flex;
-  gap: 20px;
+  gap: 24px;
 }
 
 .nav-link {
+  position: relative;
   text-decoration: none;
-  color: #cbd5f5;
-  font-weight: 500;
-  padding-bottom: 6px;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
-  letter-spacing: 0.04em;
+  color: #f3e8da;
+  font-weight: 600;
+  padding: 6px 0;
+  transition: color 0.2s ease, transform 0.2s ease;
+  letter-spacing: 0.06em;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fb923c, #fdba74);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform 0.22s ease, opacity 0.22s ease;
 }
 
 .nav-link:hover {
-  color: #f97316;
+  color: #fdba74;
+  transform: translateY(-1px);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(0.72);
+  opacity: 0.65;
 }
 
 .nav-link.router-link-active {
-  color: #ffffff;
-  border-bottom-color: #f97316;
+  color: #fff7ed;
+}
+
+.nav-link.router-link-active::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .content {
@@ -108,12 +167,25 @@ import ChatWidget from './components/ChatWidget.vue'
     gap: 12px;
   }
 
-  .nav {
-    gap: 12px;
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    margin-right: 10px;
   }
 
-  .right-actions {
-    display: none;
+  .logo-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .logo-text {
+    margin-right: 18px;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .nav {
+    gap: 12px;
   }
 }
 </style>
