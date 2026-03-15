@@ -15,109 +15,155 @@
         </p>
       </div>
 
-      <article class="uv-hero-card" :class="{ empty: !hasLocationData }">
+      <article ref="resultCardRef" class="uv-hero-card" :class="{ empty: !hasLocationData }">
         <div class="uv-hero-main">
           <div class="gauge-zone">
-            <p class="card-kicker">Current UV index</p>
+            <p class="card-kicker label-with-icon">
+              <span class="icon-chip" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" /></svg>
+              </span>
+              Current UV index
+            </p>
             <div class="gauge-shell hero-gauge-shell">
               <div class="gauge-ring hero-gauge" :class="{ muted: !hasLocationData }">
                 <div class="gauge-center hero-gauge-center">
                   <span class="gauge-label">UV Level</span>
-                  <span class="gauge-value">{{ hasLocationData ? displayData.uvIndex : '-' }}</span>
+                  <span class="gauge-value" :style="hasLocationData ? accentStyle : null">
+                    {{ hasLocationData ? displayData.uvIndex : '-' }}
+                  </span>
                 </div>
               </div>
             </div>
-            <p class="gauge-caption" v-if="hasLocationData">{{ displayData.locationName }}</p>
-            <p class="gauge-caption" v-else>Waiting for location access</p>
+            <p class="gauge-caption" v-if="!hasLocationData">Waiting for location access</p>
           </div>
 
           <div class="uv-hero-summary" :class="{ centered: !hasLocationData }">
-            <p class="summary-kicker">{{ hasLocationData ? 'Current result' : 'Get started' }}</p>
             <p class="summary-title">
-              {{ hasLocationData ? displayData.riskLabel + ' UV in your area' : 'Enable location to view your local UV level' }}
+              {{ hasLocationData ? displayData.riskLabel + ' UV in your area' : 'See your local UV level' }}
             </p>
             <p class="summary-copy" v-if="hasLocationData">{{ displayData.riskMessage }}</p>
             <p class="summary-copy" v-else>
-              Share your location once and SunWise will show your UV level, risk summary, and protection advice here.
+              Use your location or choose a city to load live UV data and protection guidance.
             </p>
 
             <div class="summary-grid" v-if="hasLocationData">
+              <div class="summary-item location-item">
+                <span class="summary-label label-with-icon">
+                  <span class="icon-chip" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="mini-icon"><path d="M12 21s-6-5.33-6-11a6 6 0 1 1 12 0c0 5.67-6 11-6 11Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                  </span>
+                  Current location
+                </span>
+                <span class="summary-value">{{ displayData.locationName }}</span>
+              </div>
               <div class="summary-item">
-                <span class="summary-label">Peak window</span>
+                <span class="summary-label label-with-icon">
+                  <span class="icon-chip" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2" /></svg>
+                  </span>
+                  Peak window
+                </span>
                 <span class="summary-value">{{ displayData.peakWindow }}</span>
               </div>
-              <div class="summary-item accent">
-                <span class="summary-label">Protection</span>
-                <span class="summary-value">{{ displayData.protectionAdvice }}</span>
+            </div>
+
+            <div class="inline-guide" v-if="hasLocationData">
+              <p class="inline-guide-kicker label-with-icon">
+                <span class="icon-chip" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" class="mini-icon"><path d="M12 3 5 6v5c0 4.5 2.9 8.5 7 10 4.1-1.5 7-5.5 7-10V6l-7-3Z" /><path d="M9.5 12.5 11 14l3.5-3.5" /></svg>
+                </span>
+                Protection guide
+              </p>
+              <p class="inline-guide-title">What you should do now</p>
+              <div class="protection-list">
+                <div v-for="item in protectionItems" :key="item.label" class="protection-chip">
+                  <span class="protection-icon" aria-hidden="true" v-html="item.icon"></span>
+                  <span class="protection-chip-text">{{ item.label }}</span>
+                </div>
               </div>
+              <button class="guide-link" type="button" @click="goToAdvise">
+                See detailed advice
+              </button>
             </div>
 
             <div class="summary-actions">
-              <button class="cta-button" type="button" :disabled="isLoading" @click="detectLocation">
-                {{ isLoading ? 'Locating...' : hasLocationData ? 'Update location' : 'Use my location' }}
-              </button>
-              <p class="status-text">{{ locationStatus }}</p>
+              <div class="action-row">
+                <button class="cta-button" type="button" :disabled="isLoading" @click="detectLocation">
+                  <span class="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="mini-icon"><path d="M12 2v4M12 18v4M4 12h4M16 12h4" /><circle cx="12" cy="12" r="4" /></svg>
+                  </span>
+                  {{ isLoading ? 'Locating...' : hasLocationData ? 'Update location' : 'Use my location' }}
+                </button>
+                <button class="secondary-button" type="button" :disabled="isLoading" @click="toggleCityPicker">
+                  <span class="button-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="mini-icon"><path d="M4 18h16M6 16V8l6-3 6 3v8" /><path d="M9 10h6" /></svg>
+                  </span>
+                  Choose city
+                </button>
+              </div>
+              <p v-if="isLoading" class="status-text">
+                {{ locationStatus }}
+              </p>
             </div>
           </div>
         </div>
       </article>
-    </section>
 
-    <section class="details-grid content-layer">
-      <article class="advice-panel">
-        <p class="card-kicker centered">Protection guide</p>
-        <template v-if="hasLocationData">
-          <div class="advice-highlight">
-            <p class="advice-title">What you should do now</p>
-            <p class="advice-text">{{ displayData.protectionAdvice }}</p>
-          </div>
-          <div class="meta-grid">
-            <div class="meta-card">
-              <span class="meta-label">Risk level</span>
-              <span class="meta-value">{{ displayData.riskLabel }}</span>
+      <div v-if="showCityPicker" class="city-modal-backdrop" @click="toggleCityPicker">
+        <div class="city-modal" @click.stop>
+          <div class="city-modal-header">
+            <div>
+              <h2 class="city-modal-title">Major Australian cities</h2>
             </div>
-            <div class="meta-card">
-              <span class="meta-label">Peak window</span>
-              <span class="meta-value">{{ displayData.peakWindow }}</span>
-            </div>
+            <button class="city-close" type="button" aria-label="Close city picker" @click="toggleCityPicker">×</button>
           </div>
-        </template>
-        <template v-else>
-          <div class="advice-highlight empty-block">
-            <p class="advice-title">Protection advice will appear here</p>
-            <p class="advice-text muted-text">
-              Share your location first to get personalised UV guidance.
-            </p>
+          <p class="city-modal-copy">Select a city to load its current UV index and risk guidance.</p>
+          <div class="city-grid modal-grid">
+            <button
+              v-for="city in MAJOR_AUSTRALIAN_CITIES"
+              :key="city.name"
+              type="button"
+              class="city-chip"
+              :class="{ active: selectedCityName === city.name }"
+              :disabled="isLoading"
+              @click="selectCity(city)"
+            >
+              {{ city.name }}
+            </button>
           </div>
-        </template>
-      </article>
-
-      <article class="advice-panel checklist-panel">
-        <p class="card-kicker centered">Quick checklist</p>
-        <div class="checklist-block">
-          <ul class="advice-list">
-            <li>Apply broad-spectrum sunscreen before outdoor activity.</li>
-            <li>Wear a hat, sunglasses, and breathable long sleeves when risk is high.</li>
-            <li>Plan direct sun exposure outside the peak UV window when possible.</li>
-          </ul>
         </div>
-      </article>
+      </div>
     </section>
   </section>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const FALLBACK_COORDS = { latitude: -37.8136, longitude: 144.9631 }
 const FALLBACK_LOCATION = 'Melbourne, Australia'
-const API_BASE_URL = '/api/home-data'
-const USE_BACKEND_API = false
+const LOCATION_API_BASE = 'http://127.0.0.1:8000'
+const WEATHER_API_BASE = 'http://127.0.0.1:8001'
+const MAJOR_AUSTRALIAN_CITIES = [
+  { name: 'Sydney', latitude: -33.8688, longitude: 151.2093 },
+  { name: 'Melbourne', latitude: -37.8136, longitude: 144.9631 },
+  { name: 'Brisbane', latitude: -27.4698, longitude: 153.0251 },
+  { name: 'Perth', latitude: -31.9523, longitude: 115.8613 },
+  { name: 'Adelaide', latitude: -34.9285, longitude: 138.6007 },
+  { name: 'Canberra', latitude: -35.2809, longitude: 149.13 },
+  { name: 'Hobart', latitude: -42.8821, longitude: 147.3272 },
+  { name: 'Darwin', latitude: -12.4634, longitude: 130.8456 },
+]
 
 const isLoading = ref(false)
 const coords = ref(null)
 const locationStatus = ref('Use your location to get your local UV result.')
 const homeData = ref(null)
+const showCityPicker = ref(false)
+const selectedCityName = ref('')
+const resultCardRef = ref(null)
+const router = useRouter()
 
 function getRiskLabel(uvIndex) {
   if (uvIndex <= 2) return 'Low'
@@ -166,29 +212,143 @@ function buildMockHomeData(currentCoords, locationName) {
     riskMessage: getRiskMessage(uvIndex),
     peakWindow: getPeakWindow(uvIndex),
     protectionAdvice: getProtectionAdvice(uvIndex),
+    uvColour: 'Fallback',
   }
 }
 
-async function fetchHomeDataFromApi(currentCoords) {
+async function fetchReverseLocation(currentCoords) {
   const query = new URLSearchParams({
-    lat: String(currentCoords.latitude),
-    lng: String(currentCoords.longitude),
+    latitude: String(currentCoords.latitude),
+    longitude: String(currentCoords.longitude),
   })
-  const response = await fetch(`${API_BASE_URL}?${query.toString()}`)
+  const response = await fetch(`${LOCATION_API_BASE}/location/reverse?${query.toString()}`)
 
   if (!response.ok) {
-    throw new Error('Failed to fetch home data from backend.')
+    throw new Error('Failed to reverse geocode current location.')
   }
 
   return response.json()
 }
 
-async function loadHomeData(currentCoords, fallbackLocationName = FALLBACK_LOCATION) {
-  if (USE_BACKEND_API) {
-    return fetchHomeDataFromApi(currentCoords)
+async function fetchWeatherData(currentCoords) {
+  const query = new URLSearchParams({
+    latitude: String(currentCoords.latitude),
+    longitude: String(currentCoords.longitude),
+  })
+  const response = await fetch(`${WEATHER_API_BASE}/weather/current?${query.toString()}`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch current weather data.')
   }
 
-  return buildMockHomeData(currentCoords, fallbackLocationName)
+  return response.json()
+}
+
+async function fetchUvSummary(uvIndex) {
+  const query = new URLSearchParams({
+    uv_index: String(uvIndex),
+  })
+  const response = await fetch(`${WEATHER_API_BASE}/uv?${query.toString()}`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch UV summary.')
+  }
+
+  return response.json()
+}
+
+function parseLocationName(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return ''
+  }
+
+  const candidates = [
+    payload,
+    payload.data,
+    payload.result,
+    payload.results?.[0],
+    payload.location,
+    payload.address,
+    payload.data?.address,
+    payload.result?.address,
+    payload.results?.[0]?.address,
+  ].filter((item) => item && typeof item === 'object')
+
+  for (const item of candidates) {
+    const parts = [
+      item.suburb,
+      item.neighbourhood,
+      item.city,
+      item.town,
+      item.village,
+      item.municipality,
+      item.county,
+      item.state,
+      item.country,
+    ]
+      .filter((part) => typeof part === 'string' && part.trim())
+      .map((part) => part.trim())
+      .filter((part) => part.toLowerCase() !== 'city')
+
+    if (parts.length > 0) {
+      return [...new Set(parts)].join(', ')
+    }
+
+    const directName =
+      item.locationName ||
+      item.formatted_address ||
+      item.address ||
+      item.name ||
+      item.label ||
+      item.display_name
+
+    if (typeof directName === 'string' && directName.trim()) {
+      return directName.trim()
+    }
+  }
+
+  return ''
+}
+
+function mapUvColour(colour) {
+  const normalized = String(colour || '').trim().toLowerCase()
+  const colourMap = {
+    green: '#65a30d',
+    yellow: '#eab308',
+    orange: '#f97316',
+    red: '#dc2626',
+    purple: '#7c3aed',
+  }
+
+  return colourMap[normalized] || '#e11d48'
+}
+
+async function loadHomeData(currentCoords, fallbackLocationName = FALLBACK_LOCATION) {
+  const reverseLocation = await fetchReverseLocation(currentCoords).catch(() => null)
+  const locationName = parseLocationName(reverseLocation) || fallbackLocationName
+
+  try {
+    const weather = await fetchWeatherData(currentCoords)
+    const uvIndex = Number(weather?.uv_index)
+
+    if (!Number.isFinite(uvIndex)) {
+      throw new Error('Weather API did not return a valid uv_index.')
+    }
+
+    const uvSummary = await fetchUvSummary(uvIndex)
+
+    return {
+      locationName,
+      uvIndex,
+      riskLabel: uvSummary?.level || getRiskLabel(uvIndex),
+      riskMessage: uvSummary?.message || getRiskMessage(uvIndex),
+      peakWindow: getPeakWindow(uvIndex),
+      protectionAdvice: getProtectionAdvice(uvIndex),
+      uvColour: uvSummary?.colour || 'Unknown',
+    }
+  } catch {
+    return buildMockHomeData(currentCoords, locationName)
+  }
 }
 
 const hasLocationData = computed(() => homeData.value !== null)
@@ -200,7 +360,21 @@ const displayData = computed(() =>
     riskMessage: '',
     peakWindow: '',
     protectionAdvice: '',
+    uvColour: '',
   }
+)
+const accentStyle = computed(() => ({
+  color: mapUvColour(displayData.value.uvColour),
+}))
+const protectionItems = computed(() =>
+  String(displayData.value.protectionAdvice || '')
+    .split('+')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => ({
+      label: item,
+      icon: getProtectionIcon(item),
+    }))
 )
 
 async function detectLocation() {
@@ -222,29 +396,102 @@ async function detectLocation() {
       coords.value = nextCoords
 
       try {
-        const nextHomeData = await loadHomeData(nextCoords, 'Current device location')
-        homeData.value = {
-          ...nextHomeData,
-          locationName: nextHomeData.locationName || 'Current device location',
-        }
-        locationStatus.value = USE_BACKEND_API
-          ? 'Location updated from your device and synced with backend data.'
-          : 'Location updated from your device. UV data is currently using local mock logic.'
+        homeData.value = await loadHomeData(nextCoords, 'Current device location')
+        selectedCityName.value = ''
+        showCityPicker.value = false
+        await scrollToResultCard()
+        locationStatus.value =
+          homeData.value.uvColour === 'Fallback'
+            ? `Using location: ${homeData.value.locationName}. Live UV data was unavailable, so fallback UV guidance is shown.`
+            : `Using location: ${homeData.value.locationName}`
       } catch {
         homeData.value = buildMockHomeData(nextCoords, 'Current device location')
-        locationStatus.value = 'Location updated, but backend data was unavailable. Showing local mock data.'
+        locationStatus.value = 'Location updated, but live UV data was unavailable. Showing fallback UV guidance.'
       } finally {
         isLoading.value = false
       }
     },
     async () => {
       coords.value = { ...FALLBACK_COORDS }
-      homeData.value = await loadHomeData(FALLBACK_COORDS, FALLBACK_LOCATION)
+      homeData.value = buildMockHomeData(FALLBACK_COORDS, FALLBACK_LOCATION)
       locationStatus.value = 'Location access was unavailable. Showing Melbourne as a fallback after your request.'
       isLoading.value = false
     },
     { enableHighAccuracy: true, timeout: 10000 }
   )
+}
+
+function toggleCityPicker() {
+  showCityPicker.value = !showCityPicker.value
+}
+
+async function selectCity(city) {
+  isLoading.value = true
+  locationStatus.value = `Loading UV for ${city.name}...`
+  selectedCityName.value = city.name
+
+  const nextCoords = {
+    latitude: city.latitude,
+    longitude: city.longitude,
+  }
+
+  coords.value = nextCoords
+
+  try {
+    homeData.value = await loadHomeData(nextCoords, city.name)
+    showCityPicker.value = false
+    await scrollToResultCard()
+    locationStatus.value =
+      homeData.value.uvColour === 'Fallback'
+        ? `Using selected city: ${homeData.value.locationName}. Live UV data was unavailable, so fallback UV guidance is shown.`
+        : `Using selected city: ${homeData.value.locationName}`
+  } catch {
+    homeData.value = buildMockHomeData(nextCoords, city.name)
+    showCityPicker.value = false
+    locationStatus.value = `Using selected city: ${city.name}. Live UV data was unavailable, so fallback UV guidance is shown.`
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function scrollToResultCard() {
+  await nextTick()
+
+  if (!resultCardRef.value) {
+    return
+  }
+
+  const top = resultCardRef.value.getBoundingClientRect().top + window.scrollY - 88
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: 'smooth',
+  })
+}
+
+function goToAdvise() {
+  router.push('/advise')
+}
+
+function getProtectionIcon(item) {
+  const normalized = item.toLowerCase()
+
+  if (normalized.includes('hat')) {
+    return '<svg viewBox="0 0 24 24" class="mini-icon"><path d="M7 12a5 5 0 0 1 10 0" /><path d="M3 13h18" /><path d="M8 13v1a4 4 0 0 0 8 0v-1" /></svg>'
+  }
+
+  if (normalized.includes('spf') || normalized.includes('sunscreen')) {
+    return '<svg viewBox="0 0 24 24" class="mini-icon"><path d="M9 4h6" /><path d="M10 4v3" /><path d="M14 4v3" /><rect x="8" y="7" width="8" height="13" rx="2" /><path d="M10 11h4" /></svg>'
+  }
+
+  if (normalized.includes('shade')) {
+    return '<svg viewBox="0 0 24 24" class="mini-icon"><path d="M12 3v9" /><path d="M5 12a7 7 0 0 1 14 0Z" /><path d="M12 12v9" /></svg>'
+  }
+
+  if (normalized.includes('sleeves') || normalized.includes('clothing')) {
+    return '<svg viewBox="0 0 24 24" class="mini-icon"><path d="m9 5 3-2 3 2 3 3-2 3-2-1v10H10V10l-2 1-2-3 3-3Z" /></svg>'
+  }
+
+  return '<svg viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="12" r="8" /><path d="M12 8v4l2.5 2" /></svg>'
 }
 </script>
 
@@ -257,7 +504,7 @@ async function detectLocation() {
   display: flex;
   flex-direction: column;
   gap: 22px;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .page-video,
@@ -312,6 +559,34 @@ async function detectLocation() {
   text-transform: uppercase;
   font-size: 0.76rem;
   font-weight: 700;
+}
+
+.label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-chip {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.12);
+  color: #7c2d12;
+  flex: 0 0 auto;
+}
+
+.mini-icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .hero-label {
@@ -383,8 +658,8 @@ async function detectLocation() {
 
 .gauge-ring.muted {
   filter: grayscale(0.5) saturate(0.7) brightness(1.02);
-  opacity: 0.46;
-  transform: scale(0.92);
+  opacity: 0.34;
+  transform: scale(0.88);
 }
 
 .gauge-center {
@@ -423,13 +698,9 @@ async function detectLocation() {
   margin: 0 auto;
 }
 
-.summary-kicker {
-  color: #6b7280;
-}
-
 .summary-title {
   margin: 0;
-  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  font-size: clamp(1.45rem, 2.2vw, 2.05rem);
   font-weight: 800;
   color: #7c2d12;
   line-height: 1.08;
@@ -438,14 +709,14 @@ async function detectLocation() {
 .summary-copy {
   margin: 0;
   color: #4b5563;
-  line-height: 1.55;
-  font-size: 1rem;
-  max-width: 760px;
+  line-height: 1.48;
+  font-size: 0.98rem;
+  max-width: 620px;
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   margin-top: 6px;
   width: 100%;
@@ -465,8 +736,94 @@ async function detectLocation() {
   background: rgba(255, 255, 255, 0.72);
 }
 
-.summary-item.accent {
-  background: rgba(249, 115, 22, 0.14);
+.location-item {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.inline-guide {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(255, 255, 255, 0.72));
+  border: 1px solid rgba(249, 115, 22, 0.12);
+}
+
+.inline-guide-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+.inline-guide-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #7c2d12;
+}
+
+.protection-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.protection-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(249, 115, 22, 0.12);
+}
+
+.protection-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.16), rgba(251, 113, 133, 0.12));
+  color: #9a3412;
+  flex: 0 0 auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.protection-chip-text {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1.1;
+}
+
+.protection-icon :deep(.mini-icon) {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.7;
+}
+
+.guide-link {
+  margin-top: 4px;
+  justify-self: start;
+  border: none;
+  background: transparent;
+  color: #7c2d12;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guide-link:hover {
+  color: #9a3412;
 }
 
 .summary-label,
@@ -481,19 +838,34 @@ async function detectLocation() {
 .meta-value {
   font-weight: 800;
   color: #1f2937;
+  overflow-wrap: anywhere;
 }
 
 .summary-actions {
-  margin-top: 8px;
+  margin-top: 6px;
   display: grid;
   gap: 8px;
   justify-items: center;
+  width: 100%;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .cta-button {
   border: none;
   border-radius: 999px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-weight: 700;
   letter-spacing: 0.04em;
   background: linear-gradient(135deg, #f97316, #fb7185);
@@ -503,6 +875,151 @@ async function detectLocation() {
   padding: 14px 28px;
   text-transform: uppercase;
   font-size: 0.82rem;
+}
+
+.secondary-button {
+  border: 1px solid rgba(124, 45, 18, 0.18);
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.78);
+  color: #7c2d12;
+  transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  padding: 14px 22px;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.secondary-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.secondary-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.city-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+.city-modal {
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(255, 252, 248, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.city-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.city-modal-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  color: #6b7280;
+}
+
+.city-modal-title {
+  margin: 6px 0 0;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: #7c2d12;
+}
+
+.city-modal-copy {
+  margin: 0;
+  color: #5b6473;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.city-close {
+  border: 1px solid rgba(124, 45, 18, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #7c2d12;
+  font-weight: 700;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.modal-grid {
+  gap: 12px;
+}
+
+  .city-chip {
+    border: none;
+    border-radius: 14px;
+  cursor: pointer;
+  padding: 10px 12px;
+  background: rgba(249, 115, 22, 0.08);
+  color: #7c2d12;
+  font-weight: 700;
+  font-size: 0.98rem;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.city-chip:hover {
+  background: rgba(249, 115, 22, 0.16);
+  transform: translateY(-1px);
+}
+
+  .city-chip.active {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(251, 113, 133, 0.18));
+    border-color: rgba(249, 115, 22, 0.28);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.12);
+}
+
+.city-chip:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .cta-button:hover {
@@ -520,13 +1037,7 @@ async function detectLocation() {
   color: #5b6473;
   font-size: 0.92rem;
   text-align: center;
-  max-width: 420px;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  max-width: 520px;
 }
 
 .advice-panel {
@@ -594,20 +1105,33 @@ async function detectLocation() {
 }
 
 @media (max-width: 1024px) {
-  .uv-hero-main,
-  .details-grid {
+  .uv-hero-main {
     grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .gauge-zone {
+    order: 1;
+  }
+
+  .uv-hero-summary {
+    order: 2;
   }
 }
 
 @media (max-width: 768px) {
   .page {
-    padding-inline: 16px;
+    padding: 0 14px 28px;
+  }
+
+  .hero {
+    padding-top: 14px;
   }
 
   .hero-intro,
   .uv-hero-card,
   .advice-panel {
+    border-radius: 24px;
     padding-left: 18px;
     padding-right: 18px;
   }
@@ -616,18 +1140,30 @@ async function detectLocation() {
     font-size: clamp(2rem, 8vw, 2.8rem);
   }
 
+  .hero-text {
+    font-size: 0.96rem;
+  }
+
   .gauge-ring {
-    width: 230px;
-    height: 230px;
+    width: 220px;
+    height: 220px;
   }
 
   .gauge-center {
-    width: 126px;
-    height: 126px;
+    width: 122px;
+    height: 122px;
   }
 
   .gauge-value {
-    font-size: 4rem;
+    font-size: 3.8rem;
+  }
+
+  .summary-title {
+    font-size: clamp(1.35rem, 6.2vw, 1.9rem);
+  }
+
+  .summary-copy {
+    font-size: 0.94rem;
   }
 
   .summary-grid,
@@ -635,8 +1171,124 @@ async function detectLocation() {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .cta-button {
+  .action-row {
+    display: grid;
     width: 100%;
+  }
+
+  .cta-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .city-modal-backdrop {
+    padding: 16px;
+  }
+
+  .city-modal {
+    padding: 18px;
+    max-height: calc(100vh - 32px);
+  }
+
+  .city-modal-header {
+    grid-template-columns: minmax(0, 1fr);
+    display: grid;
+  }
+
+  .city-close {
+    justify-self: start;
+  }
+
+  .city-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inline-guide {
+    padding: 16px;
+  }
+
+  .inline-guide-title {
+    font-size: 1rem;
+  }
+
+  .inline-guide-text {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 0 10px 22px;
+  }
+
+  .hero {
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  .hero-intro,
+  .uv-hero-card {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .card-kicker,
+  .summary-label,
+  .inline-guide-kicker {
+    letter-spacing: 0.1em;
+    font-size: 0.66rem;
+  }
+
+  .gauge-ring {
+    width: 186px;
+    height: 186px;
+  }
+
+  .gauge-center {
+    width: 106px;
+    height: 106px;
+  }
+
+  .gauge-label {
+    font-size: 0.8rem;
+  }
+
+  .gauge-value {
+    font-size: 3.1rem;
+  }
+
+  .summary-title {
+    font-size: 1.55rem;
+  }
+
+  .summary-copy {
+    font-size: 0.9rem;
+  }
+
+  .summary-item {
+    padding: 14px;
+  }
+
+  .protection-list {
+    gap: 8px;
+  }
+
+  .protection-chip {
+    width: 100%;
+  }
+
+  .protection-chip-text {
+    font-size: 1rem;
+  }
+
+  .cta-button,
+  .secondary-button {
+    padding: 13px 18px;
+    font-size: 0.76rem;
+  }
+
+  .status-text {
+    font-size: 0.86rem;
   }
 }
 </style>
