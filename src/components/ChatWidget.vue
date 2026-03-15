@@ -1,10 +1,5 @@
-<!--
-  ChatWidget.vue — Floating chat panel. Draggable FAB opens "Ask SunWise" dialog;
-  messages shown as bubbles with avatars; light theme, no backdrop.
--->
 <template>
   <div class="chat-root" :style="rootStyle">
-    <!-- Draggable circular FAB -->
     <button
       class="chat-toggle"
       type="button"
@@ -16,7 +11,6 @@
       💬
     </button>
 
-    <!-- Chat panel: light background, bubbles + avatars, no backdrop -->
     <div v-if="isOpen" class="chat-panel" :style="panelStyle">
       <header class="chat-header">
         <span>Ask SunWise</span>
@@ -65,7 +59,7 @@ const question = ref('')
 const loading = ref(false)
 const messages = ref([])
 
-// FAB position (updated on drag)
+// 圆形按钮位置（用于拖拽）
 const posX = ref(0)
 const posY = ref(0)
 const isDragging = ref(false)
