@@ -1,3 +1,6 @@
+<!--
+  AdviseView.vue — Advise page: UV selector, sunscreen recommendation, clothing advice and risk box.
+-->
 <template>
   <section class="page advise">
     <video class="page-video" autoplay muted loop playsinline>
@@ -431,6 +434,7 @@ if (Number.isFinite(sharedUv) && sharedUv >= 1 && sharedUv <= 11) {
   width: 100px;
   height: 100px;
   object-fit: contain;
+  border-radius: 16px;
 }
 
 .level-text,
@@ -675,6 +679,7 @@ if (Number.isFinite(sharedUv) && sharedUv >= 1 && sharedUv <= 11) {
   .sunscreen-img {
     width: 84px;
     height: 84px;
+    border-radius: 12px;
   }
 
   .clothing-panel {

@@ -1,3 +1,6 @@
+<!--
+  App.vue — Root layout: top bar (logo + nav), main content area (RouterView), global ChatWidget.
+-->
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import ChatWidget from './components/ChatWidget.vue'

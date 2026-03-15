@@ -1,3 +1,6 @@
+<!--
+  SkinCancerChart.vue — Line chart: skin cancer incidence by sex (Males/Females/Persons). Fetches /db/skin_cancer, year range filter.
+-->
 <template>
   <div class="skin-chart">
     <div class="chart-header">
@@ -42,6 +45,20 @@ import {
 } from 'chart.js'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+
+const chartAreaBackgroundPlugin = {
+  id: 'chartAreaBackground',
+  beforeDraw(chart) {
+    const ctx = chart.ctx
+    const area = chart.chartArea
+    if (!area) return
+    ctx.save()
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.98)'
+    ctx.fillRect(area.left, area.top, area.right - area.left, area.bottom - area.top)
+    ctx.restore()
+  },
+}
+ChartJS.register(chartAreaBackgroundPlugin)
 
 const API_BASE = 'http://127.0.0.1:8000'
 
@@ -266,6 +283,8 @@ onMounted(() => {
 .chart-wrap {
   height: 480px;
   width: 100%;
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
 .chart-loading,

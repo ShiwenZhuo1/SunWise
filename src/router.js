@@ -1,3 +1,6 @@
+/**
+ * router.js — Vue Router config. Routes: / (Home), /learn (Learn), /advise (Advise).
+ */
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from './views/HomeView.vue'
 import LearnView from './views/LearnView.vue'

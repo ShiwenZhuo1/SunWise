@@ -1,3 +1,6 @@
+<!--
+  HomeView.vue — Home page: local UV guidance, location picker, UV gauge, and optional city modal.
+-->
 <template>
   <section class="page home">
     <video class="page-video" autoplay muted loop playsinline>

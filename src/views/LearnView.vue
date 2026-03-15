@@ -1,3 +1,7 @@
+<!--
+  LearnView.vue — Learn page: video bg, carousel (UV / skin cancer / sun protection),
+  two chart buttons, SkinCancerChart and HeatChart with year filters.
+-->
 <template>
   <section class="page learn">
     <video class="page-video" autoplay muted loop playsinline>
@@ -12,18 +16,22 @@
         </button>
 
         <div class="carousel">
-          <div
-            v-for="(slide, index) in slides"
-            v-show="index === activeIndex"
-            :key="slide.title"
-            class="slide"
-            :style="{ backgroundImage: `url(${slide.background})` }"
-          >
-            <div class="slide-overlay">
-              <h1>{{ slide.title }}</h1>
-              <p class="slide-text">{{ slide.text }}</p>
-              <a class="primary-link" :href="slide.link" target="_blank" rel="noopener noreferrer">
-                {{ slide.button }}
+          <!-- Single slide bound to current index so content updates correctly -->
+          <div class="slide" :key="activeIndex">
+            <div
+              class="slide-image"
+              :style="{ backgroundImage: `url(${slides[activeIndex].background})` }"
+            ></div>
+            <div class="slide-panel">
+              <h1>{{ slides[activeIndex].title }}</h1>
+              <p class="slide-text">{{ slides[activeIndex].text }}</p>
+              <a
+                class="cta-btn"
+                :href="slides[activeIndex].link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ slides[activeIndex].button }} &gt;
               </a>
             </div>
           </div>
@@ -31,13 +39,13 @@
           <div class="carousel-controls">
             <div class="dots">
               <button
-                v-for="(slide, index) in slides"
-                :key="slide.title"
+                v-for="(_, index) in slides"
+                :key="index"
                 type="button"
                 class="dot"
                 :class="{ active: index === activeIndex }"
                 :aria-label="`Go to slide ${index + 1}`"
-                @click="goTo(index)"
+                @click.stop="goTo(index)"
               ></button>
             </div>
           </div>
@@ -114,10 +122,10 @@ const slides = [
     background: '/image/AustraliaUV.png',
   },
   {
-    title: 'Skin cancer impact',
+    title: 'Australia has one of the highest rates of skin cancer in the world',
     text:
-      'Exposure to ultraviolet (UV) radiation damages skin cells and increases the risk of skin cancer. In Australia, skin cancer is one of the most common cancers but is largely preventable with proper sun protection.',
-    button: 'Read official info',
+      'Overexposure to UV (ultraviolet) radiation is the major cause of skin cancer. Currently, two in three Australians will develop skin cancer before the age of 70. The UV Index tells you when sun protection is needed—use it when the UV Index is three or above.',
+    button: 'Get in touch',
     link: 'https://www.cancer.org.au/cancer-information/types-of-cancer/skin-cancer',
     background: '/image/skincancer.png',
   },
@@ -142,7 +150,7 @@ const nextSlide = () => {
 }
 
 const goTo = (index) => {
-  activeIndex.value = index
+  if (index >= 0 && index < slides.length) activeIndex.value = index
 }
 </script>
 
@@ -208,61 +216,60 @@ const goTo = (index) => {
 .slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: stretch;
+  z-index: 1;
 }
 
-.slide-overlay {
-  flex: 1;
-  padding: 32px 36px;
-  background: linear-gradient(
-    90deg,
-    rgba(24, 18, 14, 0.82) 0%,
-    rgba(24, 18, 14, 0.66) 34%,
-    rgba(24, 18, 14, 0.26) 62%,
-    rgba(24, 18, 14, 0.02) 100%
-  );
-  color: #fff7ed;
+.slide-image {
+  background-size: cover;
+  background-position: center;
+  border-radius: 32px 0 0 32px;
+}
+
+.slide-panel {
+  background: #f1f5f9;
+  padding: 36px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 520px;
-  backdrop-filter: blur(2px);
+  border-radius: 0 32px 32px 0;
 }
 
-.slide-overlay h1 {
+.slide-panel h1 {
   margin: 0 0 16px;
-  font-size: clamp(2rem, 3vw, 2.7rem);
-  line-height: 1.05;
-  color: #fff7ed;
-  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.2;
+  color: #1e3a8a;
+  font-weight: 700;
 }
 
 .slide-text {
-  margin: 0 0 22px;
+  margin: 0 0 24px;
   line-height: 1.6;
-  color: rgba(255, 247, 237, 0.96);
-  text-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
-  max-width: 28ch;
+  color: #475569;
+  font-size: 0.95rem;
+  max-width: 42ch;
 }
 
-.primary-link {
+.cta-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 24px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f97316, #ec4899);
+  align-self: flex-start;
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: #facc15;
   color: #111827;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.95rem;
   text-decoration: none;
-  box-shadow: 0 16px 40px rgba(248, 113, 113, 0.32);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.primary-link:hover {
+.cta-btn:hover {
+  background: #fbbf24;
   transform: translateY(-1px);
 }
 
@@ -274,6 +281,7 @@ const goTo = (index) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 .nav-btn {
@@ -423,10 +431,18 @@ const goTo = (index) => {
     height: min(72vw, 480px);
   }
 
-  .slide-overlay {
+  .slide {
+    grid-template-columns: 1fr;
+    grid-template-rows: 200px 1fr;
+  }
+
+  .slide-image {
+    border-radius: 32px 32px 0 0;
+  }
+
+  .slide-panel {
     padding: 24px 20px;
-    max-width: 100%;
-    background: linear-gradient(180deg, rgba(24, 18, 14, 0.82), rgba(24, 18, 14, 0.34) 72%);
+    border-radius: 0 0 32px 32px;
   }
 
   .nav-btn {
