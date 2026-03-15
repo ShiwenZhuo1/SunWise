@@ -36,61 +36,33 @@
             </div>
           </div>
 
-          <div class="carousel-controls">
-            <div class="dots">
-              <button
-                v-for="(_, index) in slides"
-                :key="index"
-                type="button"
-                class="dot"
-                :class="{ active: index === activeIndex }"
-                :aria-label="`Go to slide ${index + 1}`"
-                @click.stop="goTo(index)"
-              ></button>
-            </div>
-          </div>
+    <!-- Bottom cards for charts -->
+    <div class="bottom-grid">
+      <button class="info-card info-card-btn" type="button" @click="showChart('skin')">
+        <div class="icon-placeholder">?</div>
+        <div class="info-text">
+          <h2>Skin cancer impact</h2>
+          <p>Age-specific incidence rate (per 100,000) by sex — Males, Females, Persons (all ages). Filter by year range.</p>
         </div>
-
-        <button class="nav-btn nav-btn-next" type="button" aria-label="Next slide" @click="nextSlide">
-          &#8250;
-        </button>
-      </div>
-
-      <div class="bottom-grid">
-        <button
-          class="info-card info-card-btn"
-          :class="{ active: activeChart === 'skin' }"
-          type="button"
-          @click="showChart('skin')"
-        >
-          <div class="icon-placeholder">?</div>
-          <div class="info-text">
-            <h2>Skin cancer impact</h2>
-            <p>Age-specific incidence rate (per 100,000) by sex - Males, Females, Persons (all ages). Filter by year range.</p>
-          </div>
-        </button>
-        <button
-          class="info-card info-card-btn"
-          :class="{ active: activeChart === 'heat' }"
-          type="button"
-          @click="showChart('heat')"
-        >
-          <div class="icon-placeholder">☀</div>
-          <div class="info-text">
-            <h2>Heat &amp; UV exposure trend</h2>
-            <p>Number of days per year above the 1% heat threshold. Filter by year range to view trends.</p>
-          </div>
-        </button>
-      </div>
-
-      <SkinCancerChart v-if="activeChart === 'skin'" ref="skinChartRef" />
-      <HeatChart v-if="activeChart === 'heat'" ref="heatChartRef" />
+      </button>
+      <button class="info-card info-card-btn" type="button" @click="showChart('heat')">
+        <div class="icon-placeholder">☀️</div>
+        <div class="info-text">
+          <h2>Heat &amp; UV exposure trend</h2>
+          <p>Number of days per year above the 1% heat threshold. Filter by year range to view trends.</p>
+        </div>
+      </button>
     </div>
+
+    <!-- Charts only mount and show after clicking corresponding button -->
+    <SkinCancerChart v-if="activeChart === 'skin'" ref="skinChartRef" />
+
+    <HeatChart v-if="activeChart === 'heat'" ref="heatChartRef" />
   </section>
 </template>
 
 <script setup>
-import { nextTick, ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import HeatChart from '../components/HeatChart.vue'
 import SkinCancerChart from '../components/SkinCancerChart.vue'
 
@@ -103,7 +75,6 @@ function showChart(which) {
     activeChart.value = null
     return
   }
-
   activeChart.value = which
   nextTick(() => {
     const el = which === 'skin' ? skinChartRef.value?.$el : heatChartRef.value?.$el
@@ -391,6 +362,17 @@ const goTo = (index) => {
 
 .info-card-btn.active .info-text h2 {
   color: #9a3412;
+}
+
+.info-card-btn {
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.info-card-btn:hover {
+  border-color: #f97316;
 }
 
 .icon-placeholder {

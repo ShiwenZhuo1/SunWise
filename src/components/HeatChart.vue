@@ -1,12 +1,7 @@
-<!--
-  HeatChart.vue — Line chart: extreme hot days per year. Fetches /db/one_percent_heat, year range filter.
--->
 <template>
   <div class="heat-chart">
     <div class="chart-header">
-      <div class="chart-title-block">
-        <h2>Extreme Hot Days Accounting Over Years</h2>
-      </div>
+      <h2>One percent heat (days per year)</h2>
       <div class="year-range">
         <label>
           <span>From</span>
@@ -31,35 +26,30 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { Line } from 'vue-chartjs'
-import { API_BASE } from '../config'
 import {
-  CategoryScale,
   Chart as ChartJS,
-  Legend,
-  LineElement,
+  CategoryScale,
   LinearScale,
   PointElement,
+  LineElement,
   Title,
   Tooltip,
+  Legend,
 } from 'chart.js'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+)
 
-const chartAreaBackgroundPlugin = {
-  id: 'chartAreaBackground',
-  beforeDraw(chart) {
-    const ctx = chart.ctx
-    const area = chart.chartArea
-    if (!area) return
-    ctx.save()
-    ctx.fillStyle = 'rgba(248, 250, 252, 0.98)'
-    ctx.fillRect(area.left, area.top, area.right - area.left, area.bottom - area.top)
-    ctx.restore()
-  },
-}
-ChartJS.register(chartAreaBackgroundPlugin)
+const API_BASE = 'http://127.0.0.1:8000'
 
 const rawData = ref([])
 const loading = ref(true)
@@ -85,10 +75,10 @@ const chartData = computed(() => ({
   labels: filteredData.value.map((d) => d.Year),
   datasets: [
     {
-      label: 'Number of extreme hot days',
+      label: 'Number of days',
       data: filteredData.value.map((d) => d.NumberofDays),
       borderColor: '#f97316',
-      backgroundColor: 'rgba(249, 115, 22, 0.12)',
+      backgroundColor: 'rgba(249, 115, 22, 0.1)',
       tension: 0.2,
       fill: true,
     },
@@ -99,25 +89,20 @@ const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: {
-      display: true,
-      labels: {
-        color: '#4b5563',
-      },
-    },
+    legend: { display: true },
     title: { display: false },
   },
   scales: {
     x: {
-      title: { display: true, text: 'Year', color: '#4b5563' },
-      grid: { color: 'rgba(148, 163, 184, 0.18)' },
-      ticks: { color: '#4b5563', maxTicksLimit: 15 },
+      title: { display: true, text: 'Year' },
+      grid: { color: 'rgba(148, 163, 184, 0.2)' },
+      ticks: { color: '#e5e7eb', maxTicksLimit: 15 },
     },
     y: {
-      title: { display: true, text: 'Number of extreme hot days', color: '#4b5563' },
+      title: { display: true, text: 'Number of days' },
       beginAtZero: true,
-      grid: { color: 'rgba(148, 163, 184, 0.18)' },
-      ticks: { color: '#4b5563' },
+      grid: { color: 'rgba(148, 163, 184, 0.2)' },
+      ticks: { color: '#e5e7eb' },
     },
   },
 }
@@ -162,10 +147,10 @@ onMounted(fetchData)
   margin-right: auto;
   padding: 24px 28px;
   border-radius: 24px;
-  background: linear-gradient(135deg, rgba(255, 251, 247, 0.96), rgba(255, 247, 237, 0.94));
-  border: 1px solid rgba(249, 115, 22, 0.12);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
-  color: #1f2937;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+  color: #f9fafb;
 }
 
 .chart-header {
@@ -177,25 +162,15 @@ onMounted(fetchData)
   margin-bottom: 16px;
 }
 
-.chart-title-block {
-  flex: 1 1 100%;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-}
-
 .chart-header h2 {
   margin: 0;
-  font-size: 1.7rem;
-  line-height: 1.1;
-  color: #7c2d12;
+  font-size: 1.1rem;
 }
 
 .year-range {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: auto;
 }
 
 .year-range label {
@@ -203,28 +178,20 @@ onMounted(fetchData)
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
-  color: #4b5563;
 }
 
 .year-range select {
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  background: rgba(255, 255, 255, 0.88);
-  color: #1f2937;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: #0f172a;
+  color: #e5e7eb;
   font-size: 0.9rem;
-}
-
-.year-range select:focus {
-  outline: 2px solid rgba(249, 115, 22, 0.28);
-  outline-offset: 1px;
 }
 
 .chart-wrap {
   height: 480px;
   width: 100%;
-  background: #f8fafc;
-  border-radius: 12px;
 }
 
 .chart-loading,
@@ -233,7 +200,7 @@ onMounted(fetchData)
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: #94a3b8;
 }
 
 .chart-error {
