@@ -429,13 +429,15 @@ const goTo = (index) => {
     width: 100%;
   }
 
+  /* Let the slide content decide height on mobile so text is never cut off */
   .carousel {
-    height: min(72vw, 480px);
+    height: auto;
   }
 
   .slide {
+    position: static;
     grid-template-columns: 1fr;
-    grid-template-rows: 200px 1fr;
+    grid-template-rows: 220px auto;
   }
 
   .slide-image {
@@ -443,7 +445,7 @@ const goTo = (index) => {
   }
 
   .slide-panel {
-    padding: 24px 20px;
+    padding: 24px 20px 28px;
     border-radius: 0 0 32px 32px;
   }
 

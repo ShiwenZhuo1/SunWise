@@ -2,18 +2,23 @@
   <div class="chat-root" :style="rootStyle">
     <button
       class="chat-toggle"
+      :class="{ open: isOpen }"
       type="button"
-      :aria-label="isOpen ? 'Close chat' : 'Open chat'"
+      :aria-label="isOpen ? 'Close SunWise AI Assistant' : 'Open SunWise AI Assistant'"
       @mousedown.prevent="onDragStart($event, 'mouse')"
       @touchstart.prevent="onDragStart($event, 'touch')"
       @click="onToggleClick"
     >
-      💬
+      <span class="chat-toggle-icon">{{ isOpen ? '✕' : '💬' }}</span>
+      <span v-if="!isOpen" class="chat-toggle-copy">
+        <strong>SunWise AI</strong>
+        <small>Ask about UV safety</small>
+      </span>
     </button>
 
     <div v-if="isOpen" class="chat-panel" :style="panelStyle">
       <header class="chat-header">
-        <span>Ask SunWise</span>
+        <span>☀️ SunWise AI Assistant</span>
         <button type="button" class="close-btn" @click="isOpen = false">✕</button>
       </header>
 
@@ -52,11 +57,20 @@ import { API_BASE } from '../config'
 
 const BUTTON_SIZE = 52
 const GAP = 24
+const RIGHT_OFFSET = 15
 
 const isOpen = ref(false)
 const question = ref('')
 const loading = ref(false)
 const messages = ref([])
+const welcomeMessage = `☀️ SunWise AI Assistant
+
+Ask anything about UV safety.
+
+Suggested questions:
+• What should I wear for UV 6?
+• Do I need sunscreen today?
+• How long can I stay outside safely?`
 
 // FAB position (updated on drag)
 const posX = ref(0)
@@ -69,8 +83,8 @@ let startPosX = 0
 let startPosY = 0
 
 const rootStyle = computed(() => ({
-  left: `${posX.value}px`,
-  top: `${posY.value}px`,
+  right: RIGHT_OFFSET + 'px',
+  top: posY.value + 'px',
 }))
 
 const panelStyle = computed(() => ({
@@ -79,11 +93,11 @@ const panelStyle = computed(() => ({
 }))
 
 function clampPosition(x, y) {
-  const maxX = typeof window !== 'undefined' ? window.innerWidth - BUTTON_SIZE : 9999
-  const maxY = typeof window !== 'undefined' ? window.innerHeight - BUTTON_SIZE : 9999
+  const maxY = typeof window !== 'undefined' ? window.innerHeight - BUTTON_SIZE - GAP : 9999
+  const minY = typeof window !== 'undefined' ? GAP : 0
   return {
-    x: Math.max(0, Math.min(x, maxX)),
-    y: Math.max(0, Math.min(y, maxY)),
+    x: 0,
+    y: Math.max(minY, Math.min(y, maxY)),
   }
 }
 
@@ -138,13 +152,25 @@ function onDragEndTouch() {
 
 function onToggleClick() {
   if (hasMoved.value) return
-  isOpen.value = !isOpen.value
+  const nextState = !isOpen.value
+  isOpen.value = nextState
+  if (nextState) ensureWelcomeMessage()
+}
+
+function ensureWelcomeMessage() {
+  if (messages.value.length > 0) return
+  messages.value.push({
+    role: 'bot',
+    text: welcomeMessage,
+  })
 }
 
 onMounted(() => {
-  const { x, y } = clampPosition(window.innerWidth - GAP - BUTTON_SIZE, window.innerHeight - GAP - BUTTON_SIZE)
-  posX.value = x
-  posY.value = y
+  if (typeof window !== 'undefined') {
+    // initial position: 50px from bottom
+    const initialTop = window.innerHeight - BUTTON_SIZE - 100
+    posY.value = initialTop
+  }
 })
 
 const send = async () => {
@@ -197,18 +223,126 @@ const send = async () => {
 }
 
 .chat-toggle {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, #f97316, #ec4899);
-  color: #111827;
-  font-size: 1.4rem;
+  min-height: 50px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: linear-gradient(135deg, rgba(255, 250, 243, 0.95), rgba(255, 255, 255, 0.86));
+  color: #7c2d12;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
+  gap: 9px;
   justify-content: center;
-  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.9);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    opacity 0.2s ease;
+  animation: chatFloat 3.2s ease-in-out infinite;
+}
+
+.chat-toggle:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(249, 115, 22, 0.34);
+  background: linear-gradient(135deg, rgba(255, 244, 232, 0.98), rgba(255, 255, 255, 0.9));
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+}
+
+.chat-toggle.open {
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316, #fb7185);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #1f2937;
+}
+
+.chat-toggle-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.16), rgba(251, 113, 133, 0.14));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.08rem;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #9a3412;
+}
+
+.chat-toggle.open .chat-toggle-icon {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+}
+
+.chat-toggle-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.chat-toggle-copy strong {
+  color: #7c2d12;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chat-toggle-copy small {
+  color: #6b7280;
+  font-size: 0.58rem;
+  margin-top: 1px;
+}
+
+.chat-toggle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(251, 146, 60, 0.1) 35%,
+    transparent 65%
+  );
+  transform: translateX(-140%);
+  animation: chatShimmer 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.chat-toggle.open::after {
+  display: none;
+}
+
+@keyframes chatFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes chatShimmer {
+  0%,
+  70%,
+  100% {
+    transform: translateX(-140%);
+  }
+  82% {
+    transform: translateX(140%);
+  }
 }
 
 .chat-panel {
@@ -318,6 +452,7 @@ const send = async () => {
   margin: 0;
   color: #111827;
   font-size: 1rem;
+  white-space: pre-line;
 }
 
 .loading-bubble {
@@ -363,5 +498,24 @@ const send = async () => {
   opacity: 0.5;
   cursor: default;
 }
-</style>
 
+@media (max-width: 640px) {
+  .chat-toggle {
+    min-height: 46px;
+    padding: 7px 10px 7px 7px;
+    gap: 8px;
+  }
+
+  .chat-toggle-copy strong {
+    font-size: 0.66rem;
+  }
+
+  .chat-toggle-copy small {
+    font-size: 0.55rem;
+  }
+
+  .chat-panel {
+    width: min(360px, calc(100vw - 28px));
+  }
+}
+</style>
