@@ -235,10 +235,9 @@ onMounted(() => {
 }
 
 .chart-header {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -247,12 +246,16 @@ onMounted(() => {
   margin: 0;
   font-size: 1.1rem;
   color: #7c2d12;
+  text-align: center;
+  grid-column: 2;
 }
 
 .year-range {
   display: flex;
   align-items: center;
   gap: 12px;
+  grid-column: 3;
+  justify-self: end;
 }
 
 .year-range label {
@@ -301,5 +304,23 @@ onMounted(() => {
   font-size: 0.8rem;
   color: #64748b;
   max-width: 280px;
+}
+
+@media (max-width: 768px) {
+  .chart-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .chart-header h2,
+  .year-range {
+    grid-column: auto;
+  }
+
+  .year-range {
+    justify-self: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>

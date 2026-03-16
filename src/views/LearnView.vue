@@ -58,14 +58,24 @@
 
       <!-- Bottom cards for charts -->
       <div class="bottom-grid">
-      <button class="info-card info-card-btn" type="button" @click="showChart('skin')">
+      <button
+        class="info-card info-card-btn"
+        :class="{ active: activeChart === 'skin' }"
+        type="button"
+        @click="showChart('skin')"
+      >
         <div class="icon-placeholder">?</div>
         <div class="info-text">
           <h2>Skin cancer impact</h2>
           <p>Age-specific incidence rate (per 100,000) by sex — Males, Females, Persons (all ages). Filter by year range.</p>
         </div>
       </button>
-      <button class="info-card info-card-btn" type="button" @click="showChart('heat')">
+      <button
+        class="info-card info-card-btn"
+        :class="{ active: activeChart === 'heat' }"
+        type="button"
+        @click="showChart('heat')"
+      >
         <div class="icon-placeholder">☀️</div>
         <div class="info-text">
           <h2>Heat &amp; UV exposure trend</h2>
