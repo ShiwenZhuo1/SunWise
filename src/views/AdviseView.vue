@@ -23,7 +23,7 @@
           <div class="ring">
             <div class="inner static">
               <span class="uv-label">UV Level</span>
-              <span class="level">{{ selectedUv }}</span>
+              <span class="level">{{ displayedUv }}</span>
             </div>
           </div>
           <p class="shared-note">Using the latest UV result from Home.</p>
@@ -66,7 +66,7 @@
                 <h2 class="panel-title">What to wear now</h2>
                 <div class="risk-inline">
                   <span class="risk-pill">{{ riskLabel }} risk</span>
-                  <span class="risk-inline-text">UV level {{ selectedUv }}</span>
+                  <span class="risk-inline-text">UV level {{ displayedUv }}</span>
                 </div>
               </div>
             </div>
@@ -93,10 +93,11 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const SHARED_UV_STORAGE_KEY = 'sunwise-current-uv'
 const selectedUv = ref(6)
+const liveUv = ref(6)
 
 const uvAdviceMap = {
   1: {
@@ -202,9 +203,14 @@ const riskByUv = (uv) => {
   return 'Extreme'
 }
 
+const displayedUv = computed(() => {
+  const uv = Number(liveUv.value)
+  if (!Number.isFinite(uv)) return '6'
+  return uv % 1 === 0 ? String(uv) : uv.toFixed(1)
+})
 const gramsText = computed(() => `≈ ${gramsByUv(selectedUv.value)} g`)
-const levelText = computed(() => `Level ${selectedUv.value}`)
-const riskLabel = computed(() => riskByUv(selectedUv.value))
+const levelText = computed(() => `Level ${displayedUv.value}`)
+const riskLabel = computed(() => riskByUv(Number(liveUv.value)))
 const recommendationItems = computed(() => [
   { title: 'Hat', description: advice.value.hat, icon: iconMap.hat },
   { title: 'Clothing', description: advice.value.clothing, icon: iconMap.clothing },
@@ -216,16 +222,40 @@ const syncAdvice = () => {
   advice.value = uvAdviceMap[selectedUv.value] || uvAdviceMap[6]
 }
 
-watch(selectedUv, () => {
-  syncAdvice()
-})
+watch(selectedUv, syncAdvice)
 
-const sharedUv = Number(localStorage.getItem(SHARED_UV_STORAGE_KEY))
+function normalizeUvForAdvice(value) {
+  const uv = Number(value)
+  if (!Number.isFinite(uv)) return 6
+  return Math.max(1, Math.min(11, Math.ceil(uv)))
+}
 
-if (Number.isFinite(sharedUv) && sharedUv >= 1 && sharedUv <= 11) {
-  selectedUv.value = sharedUv
+function applySharedUv(value) {
+  const uv = Number(value)
+  if (!Number.isFinite(uv) || uv < 0) return
+  liveUv.value = uv
+  selectedUv.value = normalizeUvForAdvice(uv)
   syncAdvice()
 }
+
+function syncFromStorage() {
+  applySharedUv(localStorage.getItem(SHARED_UV_STORAGE_KEY))
+}
+
+function onStorage(event) {
+  if (event.key === SHARED_UV_STORAGE_KEY) {
+    applySharedUv(event.newValue)
+  }
+}
+
+onMounted(() => {
+  syncFromStorage()
+  window.addEventListener('storage', onStorage)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage', onStorage)
+})
 </script>
 
 <style scoped>
