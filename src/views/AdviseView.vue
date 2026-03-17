@@ -206,7 +206,7 @@ const riskByUv = (uv) => {
 const displayedUv = computed(() => {
   const uv = Number(liveUv.value)
   if (!Number.isFinite(uv)) return '6'
-  return uv % 1 === 0 ? String(uv) : uv.toFixed(1)
+  return String(uv)
 })
 const gramsText = computed(() => `≈ ${gramsByUv(selectedUv.value)} g`)
 const levelText = computed(() => `Level ${displayedUv.value}`)
@@ -227,14 +227,15 @@ watch(selectedUv, syncAdvice)
 function normalizeUvForAdvice(value) {
   const uv = Number(value)
   if (!Number.isFinite(uv)) return 6
-  return Math.max(1, Math.min(11, Math.ceil(uv)))
+  return Math.max(1, Math.min(11, Math.round(uv)))
 }
 
 function applySharedUv(value) {
   const uv = Number(value)
   if (!Number.isFinite(uv) || uv < 0) return
-  liveUv.value = uv
-  selectedUv.value = normalizeUvForAdvice(uv)
+  const normalizedUv = normalizeUvForAdvice(uv)
+  liveUv.value = normalizedUv
+  selectedUv.value = normalizedUv
   syncAdvice()
 }
 

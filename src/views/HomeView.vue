@@ -278,6 +278,12 @@ function extractUvIndex(payload) {
   return null
 }
 
+function normalizeUvToInteger(value) {
+  const uvIndex = Number(value)
+  if (!Number.isFinite(uvIndex)) return null
+  return Math.round(uvIndex)
+}
+
 async function fetchUvSummary(uvIndex) {
   const query = new URLSearchParams({
     uv_index: String(uvIndex),
@@ -374,7 +380,7 @@ async function loadHomeData(currentCoords, fallbackLocationName = FALLBACK_LOCAT
   const locationName = parseLocationName(reverseLocation) || fallbackLocationName
 
   const weather = await fetchWeatherData(currentCoords)
-  const uvIndex = extractUvIndex(weather)
+  const uvIndex = normalizeUvToInteger(extractUvIndex(weather))
 
   if (!Number.isFinite(uvIndex)) {
     throw new Error('Weather API did not return a valid uv_index.')
