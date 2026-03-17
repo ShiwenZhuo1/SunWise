@@ -147,6 +147,7 @@ import { useRouter } from 'vue-router'
 import { API_BASE as LOCATION_API_BASE, WEATHER_API_BASE } from '../config'
 
 const SHARED_UV_STORAGE_KEY = 'sunwise-current-uv'
+const SHARED_UV_COLOUR_STORAGE_KEY = 'sunwise-current-uv-colour'
 const FALLBACK_COORDS = { latitude: -37.8136, longitude: 144.9631 }
 const FALLBACK_LOCATION = 'Melbourne, Australia'
 const MAJOR_AUSTRALIAN_CITIES = [
@@ -437,6 +438,10 @@ watch(
 
     if (Number.isFinite(uvIndex)) {
       localStorage.setItem(SHARED_UV_STORAGE_KEY, String(uvIndex))
+    }
+
+    if (value?.uvColour) {
+      localStorage.setItem(SHARED_UV_COLOUR_STORAGE_KEY, String(value.uvColour))
     }
   },
   { deep: true }

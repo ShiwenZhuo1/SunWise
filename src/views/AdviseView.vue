@@ -23,7 +23,7 @@
           <div class="ring">
             <div class="inner static">
               <span class="uv-label">UV Level</span>
-              <span class="level">{{ displayedUv }}</span>
+              <span class="level" :style="uvAccentStyle">{{ displayedUv }}</span>
             </div>
           </div>
           <p class="shared-note">Using the latest UV result from Home.</p>
@@ -38,7 +38,7 @@
               </div>
               <div class="sunscreen-copy">
                 <p class="detail-label">Current level</p>
-                <p class="level-text">{{ levelText }}</p>
+                <p class="level-text" :style="uvAccentStyle">{{ levelText }}</p>
               </div>
             </div>
             <div class="sunscreen-row detail-card">
@@ -96,8 +96,10 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const SHARED_UV_STORAGE_KEY = 'sunwise-current-uv'
+const SHARED_UV_COLOUR_STORAGE_KEY = 'sunwise-current-uv-colour'
 const selectedUv = ref(6)
 const liveUv = ref(6)
+const liveUvColour = ref('')
 
 const uvAdviceMap = {
   1: {
@@ -203,11 +205,27 @@ const riskByUv = (uv) => {
   return 'Extreme'
 }
 
+function mapUvColour(colour) {
+  const normalized = String(colour || '').trim().toLowerCase()
+  const colourMap = {
+    green: '#65a30d',
+    yellow: '#eab308',
+    orange: '#f97316',
+    red: '#dc2626',
+    purple: '#7c3aed',
+  }
+
+  return colourMap[normalized] || '#e11d48'
+}
+
 const displayedUv = computed(() => {
   const uv = Number(liveUv.value)
   if (!Number.isFinite(uv)) return '6'
   return uv > 11 ? '11+' : String(uv)
 })
+const uvAccentStyle = computed(() => ({
+  color: mapUvColour(liveUvColour.value),
+}))
 const gramsText = computed(() => `≈ ${gramsByUv(selectedUv.value)} g`)
 const levelText = computed(() => `Level ${displayedUv.value}`)
 const riskLabel = computed(() => riskByUv(Number(liveUv.value)))
@@ -240,11 +258,16 @@ function applySharedUv(value) {
 
 function syncFromStorage() {
   applySharedUv(localStorage.getItem(SHARED_UV_STORAGE_KEY))
+  liveUvColour.value = localStorage.getItem(SHARED_UV_COLOUR_STORAGE_KEY) || ''
 }
 
 function onStorage(event) {
   if (event.key === SHARED_UV_STORAGE_KEY) {
     applySharedUv(event.newValue)
+  }
+
+  if (event.key === SHARED_UV_COLOUR_STORAGE_KEY) {
+    liveUvColour.value = event.newValue || ''
   }
 }
 
