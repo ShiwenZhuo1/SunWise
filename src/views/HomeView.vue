@@ -248,6 +248,36 @@ async function fetchWeatherData(currentCoords) {
   return response.json()
 }
 
+function extractUvIndex(payload) {
+  if (!payload || typeof payload !== 'object') return null
+
+  const candidates = [
+    payload?.uv_index,
+    payload?.uvIndex,
+    payload?.uv,
+    payload?.current_uv,
+    payload?.data?.uv_index,
+    payload?.data?.uvIndex,
+    payload?.data?.uv,
+    payload?.current?.uv_index,
+    payload?.current?.uvIndex,
+    payload?.current?.uv,
+    payload?.current_weather?.uv_index,
+    payload?.current_weather?.uvIndex,
+    payload?.current_weather?.uv,
+    payload?.result?.uv_index,
+    payload?.result?.uvIndex,
+    payload?.result?.uv,
+  ]
+
+  for (const value of candidates) {
+    const uvIndex = Number(value)
+    if (Number.isFinite(uvIndex)) return uvIndex
+  }
+
+  return null
+}
+
 async function fetchUvSummary(uvIndex) {
   const query = new URLSearchParams({
     uv_index: String(uvIndex),
@@ -343,27 +373,23 @@ async function loadHomeData(currentCoords, fallbackLocationName = FALLBACK_LOCAT
   const reverseLocation = await fetchReverseLocation(currentCoords).catch(() => null)
   const locationName = parseLocationName(reverseLocation) || fallbackLocationName
 
-  try {
-    const weather = await fetchWeatherData(currentCoords)
-    const uvIndex = Number(weather?.uv_index)
+  const weather = await fetchWeatherData(currentCoords)
+  const uvIndex = extractUvIndex(weather)
 
-    if (!Number.isFinite(uvIndex)) {
-      throw new Error('Weather API did not return a valid uv_index.')
-    }
+  if (!Number.isFinite(uvIndex)) {
+    throw new Error('Weather API did not return a valid uv_index.')
+  }
 
-    const uvSummary = await fetchUvSummary(uvIndex)
+  const uvSummary = await fetchUvSummary(uvIndex).catch(() => null)
 
-    return {
-      locationName,
-      uvIndex,
-      riskLabel: uvSummary?.level || getRiskLabel(uvIndex),
-      riskMessage: uvSummary?.message || getRiskMessage(uvIndex),
-      peakWindow: getPeakWindow(uvIndex),
-      protectionAdvice: getProtectionAdvice(uvIndex),
-      uvColour: uvSummary?.colour || 'Unknown',
-    }
-  } catch {
-    return buildMockHomeData(currentCoords, locationName)
+  return {
+    locationName,
+    uvIndex,
+    riskLabel: uvSummary?.level || getRiskLabel(uvIndex),
+    riskMessage: uvSummary?.message || getRiskMessage(uvIndex),
+    peakWindow: getPeakWindow(uvIndex),
+    protectionAdvice: getProtectionAdvice(uvIndex),
+    uvColour: uvSummary?.colour || 'Unknown',
   }
 }
 
@@ -428,22 +454,25 @@ async function detectLocation() {
         selectedCityName.value = ''
         showCityPicker.value = false
         await scrollToResultCard()
-        locationStatus.value =
-          homeData.value.uvColour === 'Fallback'
-            ? `Using location: ${homeData.value.locationName}. Live UV data was unavailable, so fallback UV guidance is shown.`
-            : `Using location: ${homeData.value.locationName}`
+        locationStatus.value = `Using live UV data for: ${homeData.value.locationName}`
       } catch {
-        homeData.value = buildMockHomeData(nextCoords, 'Current device location')
-        locationStatus.value = 'Location updated, but live UV data was unavailable. Showing fallback UV guidance.'
+        homeData.value = null
+        locationStatus.value = 'Location updated, but live UV data is unavailable right now.'
       } finally {
         isLoading.value = false
       }
     },
     async () => {
       coords.value = { ...FALLBACK_COORDS }
-      homeData.value = buildMockHomeData(FALLBACK_COORDS, FALLBACK_LOCATION)
-      locationStatus.value = 'Location access was unavailable. Showing Melbourne as a fallback after your request.'
-      isLoading.value = false
+      try {
+        homeData.value = await loadHomeData(FALLBACK_COORDS, FALLBACK_LOCATION)
+        locationStatus.value = `Location access was unavailable. Showing live UV for ${homeData.value.locationName}.`
+      } catch {
+        homeData.value = null
+        locationStatus.value = 'Location access was unavailable, and fallback live UV data could not be loaded.'
+      } finally {
+        isLoading.value = false
+      }
     },
     { enableHighAccuracy: true, timeout: 10000 }
   )
@@ -469,14 +498,11 @@ async function selectCity(city) {
     homeData.value = await loadHomeData(nextCoords, city.name)
     showCityPicker.value = false
     await scrollToResultCard()
-    locationStatus.value =
-      homeData.value.uvColour === 'Fallback'
-        ? `Using selected city: ${homeData.value.locationName}. Live UV data was unavailable, so fallback UV guidance is shown.`
-        : `Using selected city: ${homeData.value.locationName}`
+    locationStatus.value = `Using live UV data for: ${homeData.value.locationName}`
   } catch {
-    homeData.value = buildMockHomeData(nextCoords, city.name)
+    homeData.value = null
     showCityPicker.value = false
-    locationStatus.value = `Using selected city: ${city.name}. Live UV data was unavailable, so fallback UV guidance is shown.`
+    locationStatus.value = `Selected city: ${city.name}. Live UV data is unavailable right now.`
   } finally {
     isLoading.value = false
   }
