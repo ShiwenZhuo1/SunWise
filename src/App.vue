@@ -2,12 +2,11 @@
   App.vue — Root layout: top bar (logo + nav), main content area (RouterView), global ChatWidget.
 -->
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import ChatWidget from './components/ChatWidget.vue'
 
 const ACCESS_PASSWORD = 'TP48'
-const ACCESS_STORAGE_KEY = 'sunwise-site-access'
 
 const password = ref('')
 const errorMessage = ref('')
@@ -19,19 +18,12 @@ function unlockSite() {
   if (trimmedPassword.value === ACCESS_PASSWORD) {
     isAuthorized.value = true
     errorMessage.value = ''
-    localStorage.setItem(ACCESS_STORAGE_KEY, 'granted')
     password.value = ''
     return
   }
 
   errorMessage.value = 'Incorrect password. Try again.'
 }
-
-onMounted(() => {
-  if (localStorage.getItem(ACCESS_STORAGE_KEY) === 'granted') {
-    isAuthorized.value = true
-  }
-})
 </script>
 
 <template>
