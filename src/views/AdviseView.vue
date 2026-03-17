@@ -399,7 +399,7 @@ onUnmounted(() => {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  background: #22004a;
+  background: linear-gradient(135deg, #fff8f2, #ffffff);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -410,7 +410,7 @@ onUnmounted(() => {
 .uv-label {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #334155;
 }
 
 .level {

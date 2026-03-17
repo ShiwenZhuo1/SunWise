@@ -32,7 +32,7 @@
                 <div class="gauge-center hero-gauge-center">
                   <span class="gauge-label">UV Level</span>
                   <span class="gauge-value" :style="hasLocationData ? accentStyle : null">
-                    {{ hasLocationData ? displayData.uvIndex : '-' }}
+                    {{ hasLocationData ? formattedUvIndex : '-' }}
                   </span>
                 </div>
               </div>
@@ -141,13 +141,14 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { API_BASE as LOCATION_API_BASE, WEATHER_API_BASE } from '../config'
 
 const SHARED_UV_STORAGE_KEY = 'sunwise-current-uv'
 const SHARED_UV_COLOUR_STORAGE_KEY = 'sunwise-current-uv-colour'
+const HOME_STATE_STORAGE_KEY = 'sunwise-home-state'
 const FALLBACK_COORDS = { latitude: -37.8136, longitude: 144.9631 }
 const FALLBACK_LOCATION = 'Melbourne, Australia'
 const MAJOR_AUSTRALIAN_CITIES = [
@@ -376,6 +377,38 @@ function mapUvColour(colour) {
   return colourMap[normalized] || '#e11d48'
 }
 
+function persistHomeState() {
+  const payload = {
+    coords: coords.value,
+    locationStatus: locationStatus.value,
+    homeData: homeData.value,
+    selectedCityName: selectedCityName.value,
+  }
+
+  localStorage.setItem(HOME_STATE_STORAGE_KEY, JSON.stringify(payload))
+}
+
+function restoreHomeState() {
+  const raw = localStorage.getItem(HOME_STATE_STORAGE_KEY)
+  if (!raw) return
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed?.coords) coords.value = parsed.coords
+    if (typeof parsed?.locationStatus === 'string' && parsed.locationStatus.trim()) {
+      locationStatus.value = parsed.locationStatus
+    }
+    if (parsed?.homeData && typeof parsed.homeData === 'object') {
+      homeData.value = parsed.homeData
+    }
+    if (typeof parsed?.selectedCityName === 'string') {
+      selectedCityName.value = parsed.selectedCityName
+    }
+  } catch (error) {
+    console.error('Failed to restore Home state from storage.', error)
+  }
+}
+
 async function loadHomeData(currentCoords, fallbackLocationName = FALLBACK_LOCATION) {
   const reverseLocation = await fetchReverseLocation(currentCoords).catch(() => null)
   const locationName = parseLocationName(reverseLocation) || fallbackLocationName
@@ -443,9 +476,13 @@ watch(
     if (value?.uvColour) {
       localStorage.setItem(SHARED_UV_COLOUR_STORAGE_KEY, String(value.uvColour))
     }
+
+    persistHomeState()
   },
   { deep: true }
 )
+
+watch([coords, locationStatus, selectedCityName], persistHomeState, { deep: true })
 
 async function detectLocation() {
   if (!navigator.geolocation) {
@@ -563,6 +600,10 @@ function getProtectionIcon(item) {
 
   return '<svg viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="12" r="8" /><path d="M12 8v4l2.5 2" /></svg>'
 }
+
+onMounted(() => {
+  restoreHomeState()
+})
 </script>
 
 <style scoped>
@@ -736,7 +777,7 @@ function getProtectionIcon(item) {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  background: #22004a;
+  background: linear-gradient(135deg, #fff8f2, #ffffff);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -746,7 +787,7 @@ function getProtectionIcon(item) {
 .gauge-label {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #334155;
 }
 
 .gauge-value {

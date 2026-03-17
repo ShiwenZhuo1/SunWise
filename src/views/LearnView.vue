@@ -69,6 +69,11 @@
           <h2>Skin cancer impact</h2>
           <p>Age-specific incidence rate (per 100,000) by sex — Males, Females, Persons (all ages). Filter by year range.</p>
         </div>
+        <span class="card-toggle-indicator" :class="{ open: activeChart === 'skin' }" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 10l5 5 5-5" />
+          </svg>
+        </span>
       </button>
       <button
         class="info-card info-card-btn"
@@ -81,6 +86,11 @@
           <h2>Heat &amp; UV exposure trend</h2>
           <p>Number of days per year above the 1% heat threshold. Filter by year range to view trends.</p>
         </div>
+        <span class="card-toggle-indicator" :class="{ open: activeChart === 'heat' }" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 10l5 5 5-5" />
+          </svg>
+        </span>
       </button>
     </div>
 
@@ -96,7 +106,7 @@ import { ref, nextTick } from 'vue'
 import HeatChart from '../components/HeatChart.vue'
 import SkinCancerChart from '../components/SkinCancerChart.vue'
 
-const activeChart = ref(null)
+const activeChart = ref('skin')
 const skinChartRef = ref(null)
 const heatChartRef = ref(null)
 
@@ -365,6 +375,7 @@ const goTo = (index) => {
   cursor: pointer;
   text-align: left;
   font: inherit;
+  justify-content: space-between;
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -378,20 +389,24 @@ const goTo = (index) => {
 }
 
 .info-card-btn.active {
-  background: linear-gradient(135deg, rgba(255, 237, 213, 0.96), rgba(255, 247, 237, 0.9));
-  border-color: rgba(249, 115, 22, 0.46);
+  background: linear-gradient(135deg, rgba(255, 226, 190, 0.98), rgba(255, 239, 213, 0.94));
+  border-color: rgba(249, 115, 22, 0.7);
   box-shadow:
     0 18px 40px rgba(15, 23, 42, 0.18),
-    0 0 0 1px rgba(251, 146, 60, 0.18);
+    0 0 0 1px rgba(249, 115, 22, 0.24);
 }
 
 .info-card-btn.active .icon-placeholder {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.24), rgba(251, 113, 133, 0.2));
-  color: #c2410c;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.34), rgba(251, 113, 133, 0.26));
+  color: #9a3412;
 }
 
 .info-card-btn.active .info-text h2 {
-  color: #9a3412;
+  color: #7c2d12;
+}
+
+.info-card-btn.active .info-text p {
+  color: #7c5a4d;
 }
 
 .info-card-btn {
@@ -428,6 +443,40 @@ const goTo = (index) => {
   margin: 0;
   font-size: 0.9rem;
   color: #4b5563;
+}
+
+.card-toggle-indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #9a3412;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.card-toggle-indicator svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-toggle-indicator.open {
+  transform: rotate(180deg);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(251, 113, 133, 0.14));
+  border-color: rgba(249, 115, 22, 0.34);
 }
 
 @media (max-width: 768px) {

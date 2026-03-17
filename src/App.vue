@@ -2,42 +2,109 @@
   App.vue — Root layout: top bar (logo + nav), main content area (RouterView), global ChatWidget.
 -->
 <script setup>
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import ChatWidget from './components/ChatWidget.vue'
+
+const ACCESS_PASSWORD = 'TP48'
+const ACCESS_STORAGE_KEY = 'sunwise-site-access'
+
+const password = ref('')
+const errorMessage = ref('')
+const isAuthorized = ref(false)
+
+const trimmedPassword = computed(() => password.value.trim())
+
+function unlockSite() {
+  if (trimmedPassword.value === ACCESS_PASSWORD) {
+    isAuthorized.value = true
+    errorMessage.value = ''
+    localStorage.setItem(ACCESS_STORAGE_KEY, 'granted')
+    password.value = ''
+    return
+  }
+
+  errorMessage.value = 'Incorrect password. Try again.'
+}
+
+onMounted(() => {
+  if (localStorage.getItem(ACCESS_STORAGE_KEY) === 'granted') {
+    isAuthorized.value = true
+  }
+})
 </script>
 
 <template>
   <div class="layout">
-    <header class="top-bar">
-      <div class="left">
-        <div class="logo-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" class="logo-icon">
-            <circle cx="16" cy="16" r="7" />
-            <path d="M16 3.5v4" />
-            <path d="M16 24.5v4" />
-            <path d="M3.5 16h4" />
-            <path d="M24.5 16h4" />
-            <path d="m7.2 7.2 2.8 2.8" />
-            <path d="m22 22 2.8 2.8" />
-            <path d="m7.2 24.8 2.8-2.8" />
-            <path d="m22 10 2.8-2.8" />
-          </svg>
+    <template v-if="isAuthorized">
+      <header class="top-bar">
+        <div class="left">
+          <div class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" class="logo-icon">
+              <circle cx="16" cy="16" r="7" />
+              <path d="M16 3.5v4" />
+              <path d="M16 24.5v4" />
+              <path d="M3.5 16h4" />
+              <path d="M24.5 16h4" />
+              <path d="m7.2 7.2 2.8 2.8" />
+              <path d="m22 22 2.8 2.8" />
+              <path d="m7.2 24.8 2.8-2.8" />
+              <path d="m22 10 2.8-2.8" />
+            </svg>
+          </div>
+          <div class="logo-text">Sunwise</div>
         </div>
-        <div class="logo-text">Sunwise</div>
-      </div>
 
-      <nav class="nav">
-        <RouterLink to="/" class="nav-link">Home</RouterLink>
-        <RouterLink to="/learn" class="nav-link">Learn</RouterLink>
-        <RouterLink to="/advise" class="nav-link">Advise</RouterLink>
-      </nav>
-    </header>
+        <nav class="nav">
+          <RouterLink to="/" class="nav-link">Home</RouterLink>
+          <RouterLink to="/learn" class="nav-link">Learn</RouterLink>
+          <RouterLink to="/advise" class="nav-link">Advise</RouterLink>
+        </nav>
+      </header>
 
-    <main class="content">
-      <RouterView />
+      <main class="content">
+        <RouterView />
+      </main>
+
+      <ChatWidget />
+    </template>
+
+    <main v-else class="gate-shell">
+      <video class="gate-video" autoplay muted loop playsinline>
+        <source src="/home.mp4" type="video/mp4" />
+      </video>
+      <div class="gate-overlay"></div>
+      <section class="gate-card">
+        <div class="gate-badge">
+          <div class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" class="logo-icon">
+              <circle cx="16" cy="16" r="7" />
+              <path d="M16 3.5v4" />
+              <path d="M16 24.5v4" />
+              <path d="M3.5 16h4" />
+              <path d="M24.5 16h4" />
+              <path d="m7.2 7.2 2.8 2.8" />
+              <path d="m22 22 2.8 2.8" />
+              <path d="m7.2 24.8 2.8-2.8" />
+              <path d="m22 10 2.8-2.8" />
+            </svg>
+          </div>
+          <span>SunWise Private Preview</span>
+        </div>
+        <h1>Enter password to view the site</h1>
+        <p>This preview is protected. Enter the access password to continue.</p>
+        <form class="gate-form" @submit.prevent="unlockSite">
+          <input
+            v-model="password"
+            type="password"
+            placeholder="Password"
+            autocomplete="current-password"
+          />
+          <button type="submit">Unlock</button>
+        </form>
+        <p v-if="errorMessage" class="gate-error">{{ errorMessage }}</p>
+      </section>
     </main>
-
-    <ChatWidget />
   </div>
 </template>
 
@@ -164,6 +231,106 @@ import ChatWidget from './components/ChatWidget.vue'
   min-height: calc(100vh - 80px);
 }
 
+.gate-shell {
+  min-height: 100vh;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.gate-video,
+.gate-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.gate-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gate-overlay {
+  background:
+    linear-gradient(180deg, rgba(255, 245, 236, 0.24), rgba(25, 20, 39, 0.42)),
+    linear-gradient(135deg, rgba(251, 146, 60, 0.16), rgba(236, 72, 153, 0.1));
+}
+
+.gate-card {
+  position: relative;
+  z-index: 1;
+  width: min(460px, 100%);
+  padding: 28px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 250, 244, 0.92), rgba(255, 255, 255, 0.84));
+  border: 1px solid rgba(255, 247, 237, 0.22);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+  color: #1f2937;
+  backdrop-filter: blur(16px);
+}
+
+.gate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: #7c2d12;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gate-card h1 {
+  margin: 0 0 10px;
+  color: #1f1630;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1.05;
+}
+
+.gate-card p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.gate-form {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.gate-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  font-size: 1rem;
+}
+
+.gate-form button {
+  border: none;
+  border-radius: 16px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #f97316, #fb7185);
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(249, 115, 22, 0.22);
+}
+
+.gate-error {
+  margin-top: 12px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .top-bar {
     padding: 0 16px;
@@ -189,6 +356,15 @@ import ChatWidget from './components/ChatWidget.vue'
 
   .nav {
     gap: 12px;
+  }
+
+  .gate-card {
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .gate-form {
+    flex-direction: column;
   }
 }
 </style>

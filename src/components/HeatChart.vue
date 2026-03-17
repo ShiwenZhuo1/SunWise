@@ -1,7 +1,7 @@
 <template>
   <div class="heat-chart">
     <div class="chart-header">
-      <h2>One percent heat (days per year)</h2>
+      <h2>{{ chartTitle }}</h2>
       <div class="year-range">
         <label>
           <span>From</span>
@@ -22,9 +22,25 @@
       <span>{{ error }}</span>
       <p class="chart-error-hint">If deployed: set VITE_API_BASE in Vercel and allow CORS from your frontend origin.</p>
     </div>
-    <div v-else class="chart-wrap">
-      <Line :data="chartData" :options="chartOptions" />
-    </div>
+    <template v-else>
+      <p class="chart-description">
+        * This chart shows the number of days each year where temperatures exceeded extreme heat
+        thresholds. It helps illustrate how heat exposure has changed over time.
+      </p>
+      <div class="chart-wrap">
+        <Line :data="chartData" :options="chartOptions" />
+      </div>
+      <div class="chart-notes">
+        <div class="chart-analysis">
+          <p class="analysis-title">Analysis</p>
+          <ol>
+            <li>A clear upward trend begins from around the 1990s.</li>
+            <li>Variability increases significantly in recent decades.</li>
+            <li>Several peak years show sharp spikes in extreme heat events.</li>
+          </ol>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -100,6 +116,10 @@ const chartData = computed(() => ({
     },
   ],
 }))
+
+const chartTitle = computed(
+  () => `Number of Extreme Heat Days per Year (${yearFrom.value}–${yearTo.value})`
+)
 
 const chartOptions = {
   responsive: true,
@@ -217,6 +237,45 @@ onMounted(fetchData)
   width: 100%;
   background: #f8fafc;
   border-radius: 12px;
+}
+
+.chart-description,
+.chart-analysis {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(249, 115, 22, 0.12);
+  color: #475569;
+  line-height: 1.6;
+}
+
+.chart-description {
+  margin-bottom: 18px;
+  font-size: 0.96rem;
+  font-style: italic;
+}
+
+.chart-notes {
+  margin-top: 18px;
+}
+
+.analysis-title {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #7c2d12;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.chart-analysis ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.chart-analysis li + li {
+  margin-top: 8px;
 }
 
 .chart-loading,

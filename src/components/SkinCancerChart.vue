@@ -1,7 +1,7 @@
 <template>
   <div class="skin-chart">
     <div class="chart-header">
-      <h2>Skin Cancer Incidence Trends (All Ages Combined)</h2>
+      <h2>{{ chartTitle }}</h2>
       <div class="year-range">
         <label>
           <span>From</span>
@@ -22,9 +22,26 @@
       <span>{{ error }}</span>
       <p class="chart-error-hint">If deployed: set VITE_API_BASE in Vercel and allow CORS from your frontend origin.</p>
     </div>
-    <div v-else class="chart-wrap">
-      <Line :data="chartData" :options="chartOptions" />
-    </div>
+    <template v-else>
+      <p class="chart-description">
+        *This chart shows the annual skin cancer incidence rate (per 100,000 people) for males,
+        females, and the total population over time. It highlights long-term trends and
+        differences between genders.
+      </p>
+      <div class="chart-wrap">
+        <Line :data="chartData" :options="chartOptions" />
+      </div>
+      <div class="chart-notes">
+        <div class="chart-analysis">
+          <p class="analysis-title">Analysis</p>
+          <ol>
+            <li>Male incidence rates are consistently higher than females across all years.</li>
+            <li>All groups show a steady upward trend over time.</li>
+            <li>The gap between males and females gradually increases.</li>
+          </ol>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -149,6 +166,10 @@ const chartData = computed(() => {
     ],
   }
 })
+
+const chartTitle = computed(
+  () => `Skin Cancer Incidence Trends by Gender (${yearFrom.value}–${yearTo.value})`
+)
 
 const chartOptions = {
   responsive: true,
@@ -280,6 +301,45 @@ onMounted(() => {
   width: 100%;
   background: #f8fafc;
   border-radius: 12px;
+}
+
+.chart-description,
+.chart-analysis {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(249, 115, 22, 0.12);
+  color: #475569;
+  line-height: 1.6;
+}
+
+.chart-description {
+  margin-bottom: 18px;
+  font-size: 0.96rem;
+  font-style: italic;
+}
+
+.chart-notes {
+  margin-top: 18px;
+}
+
+.analysis-title {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #7c2d12;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.chart-analysis ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.chart-analysis li + li {
+  margin-top: 8px;
 }
 
 .chart-loading,
