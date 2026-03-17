@@ -411,6 +411,11 @@ const displayData = computed(() =>
     uvColour: '',
   }
 )
+const formattedUvIndex = computed(() => {
+  const uvIndex = Number(displayData.value.uvIndex)
+  if (!Number.isFinite(uvIndex)) return '-'
+  return uvIndex > 11 ? '11+' : String(uvIndex)
+})
 const accentStyle = computed(() => ({
   color: mapUvColour(displayData.value.uvColour),
 }))
